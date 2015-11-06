@@ -1,0 +1,20 @@
+{
+  "name": "GlimrSDK-JS",
+  "version": "1.0.1",
+  "description": "JavaScript SDK for glimr.io",
+  "homepage": "https://glimr.io",
+  "keywords": [
+    "glimr"
+  ],
+  "devDependencies": {
+    "jshint": "latest",
+    "uglify-js": "latest"
+  },
+  "scripts": {
+    "lint": "$(npm bin)/jshint --config .jshintrc src/**",
+    "prebuild:js": "npm run lint",
+    "build:js": "$(npm bin)/uglifyjs --compress --mangle --reserved=Glimr src/glimr.js > dist/glimr.min.js",
+    "build": "npm run build:js",
+    "server": "php -S 0.0.0.0:8080 -t test/"
+  }
+}
