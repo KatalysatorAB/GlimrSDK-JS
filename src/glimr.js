@@ -102,6 +102,7 @@
       }
 
       Glimr._loadingTags[pixelId] = [];
+      Glimr._loadingTags[pixelId].push(callback);
 
       try {
         Glimr.initGlimrId();
@@ -115,11 +116,11 @@
           Glimr._loadedTags[pixelId] = tags;
 
           var callbacks = Glimr._loadingTags[pixelId];
+          delete Glimr._loadingTags[pixelId];
+
           for (var i = 0; i < callbacks.length; i += 1) {
             callbacks[i](tags);
           }
-
-          delete Glimr._loadingTags[pixelId];
 
           if (typeof data.id === "string" && data.id !== Glimr.glimrId) {
             Glimr.glimrId = data.id;
