@@ -1,0 +1,15 @@
+{
+  "framework": "jasmine",
+  "src_files": [
+    "src/*.js",
+    "spec/**/*.js"
+  ],
+  "src_files_ignore": "spec/server.js",
+  "disable_watching": true,
+  "launch_in_ci": [
+    "PhantomJS"
+  ],
+  "launch_in_dev": [
+    "PhantomJS"
+  ]
+}

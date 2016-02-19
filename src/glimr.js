@@ -1,11 +1,17 @@
 (function(window) {
   "use strict";
 
-  var GLIMR_URL = "//pixel.glimr.io/v3/iptags/:id/";
+  var GLIMR_HOST = "//pixel.glimr.io";
+  var GLIMR_TAGS_PATH = "/v3/iptags/:id/";
 
   var Glimr = {
     _loadedTags: {},
     _loadingTags: {},
+
+    url: {
+      host: GLIMR_HOST,
+      tags: GLIMR_TAGS_PATH
+    },
 
     JSONP: function(url, callback) {
       var timestamp = new Date().getTime();
@@ -107,7 +113,7 @@
       try {
         Glimr.initGlimrId();
 
-        Glimr.JSONP(GLIMR_URL.replace(":id", pixelId) + "?id=" + Glimr.glimrId, function(data) {
+        Glimr.JSONP((Glimr.url.host + Glimr.url.tags).replace(":id", pixelId) + "?id=" + Glimr.glimrId, function(data) {
           var tags = [];
           if (data && data.tags) {
             tags = data.tags;

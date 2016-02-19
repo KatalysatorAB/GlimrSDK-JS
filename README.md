@@ -31,6 +31,15 @@ cd GlimrSDK-JS
 npm install
 ```
 
+### Testing
+
+```bash
+npm install -g testem
+npm install -g phantomjs-prebuilt
+node spec/server.js # keep alive in separate tab
+testem
+```
+
 ### Building for production
 
 ```bash
