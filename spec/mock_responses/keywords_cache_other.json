@@ -1,0 +1,9 @@
+{
+  "tags": [],
+  "cache": {
+    "6666cd76f96956469e7be39d750cc7d9": ["le_tag", "el_tag", "a_tag"],
+    "abc": ["le_tag", "el_tag"],
+    "def": ["a_tag", "another_tag"],
+    "ghj": [],
+  }
+}

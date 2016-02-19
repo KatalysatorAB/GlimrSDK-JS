@@ -1,6 +1,7 @@
 describe('tags', function(){
   beforeEach(function() {
-    setupGlimr();
+    setupGlimrMockServer();
+    clearGlimrValues();
   });
 
   it('should fetch a list of tags for a publisher id', function() {
@@ -48,10 +49,10 @@ describe('tags', function(){
   });
 
   it('should return an empty list of tags when the api is down', function() {
+    setupGlimrCrashedServer();
+
     var isDone = false;
     var tags;
-
-    Glimr.url.host = "http://this-does-not-exist.org";
 
     runs(function() {
       Glimr.getTags("empty", function(fetchedTags) {
