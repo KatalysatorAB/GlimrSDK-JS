@@ -73,10 +73,13 @@ describe('tag_cache', function() {
     // Try to fetch tags when server crashed
     runs(function() {
       setupGlimrCrashedServer();
+      delete Glimr._loadedTags["keywords_cache_normal"];
+
       isDone = false;
 
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
         isDone = true;
+        tags = fetchedTags;
       });
     });
 
@@ -85,10 +88,14 @@ describe('tag_cache', function() {
     });
 
     runs(function() {
-      var glimrTags = Glimr._unmarshalTags(localStorage["glimrArticleTags_" + "keywords_cache_normal"])["6666cd76f96956469e7be39d750cc7d9"];
-      expect(glimrTags.length).toBe(2);
-      expect(glimrTags).toContain("tag_1");
-      expect(glimrTags).toContain("tag_2");
+      var cachedTags = Glimr._unmarshalTags(localStorage["glimrArticleTags_" + "keywords_cache_normal"])["6666cd76f96956469e7be39d750cc7d9"];
+      expect(cachedTags.length).toBe(2);
+      expect(cachedTags).toContain("tag_1");
+      expect(cachedTags).toContain("tag_2");
+
+      expect(tags.length).toBe(2);
+      expect(tags).toContain("tag_1");
+      expect(tags).toContain("tag_2");
     });
   });
 
