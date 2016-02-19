@@ -169,8 +169,8 @@
           var callbacks = Glimr._loadingTags[pixelId];
           delete Glimr._loadingTags[pixelId];
 
-          for (var i = 0; i < callbacks.length; i += 1) {
-            callbacks[i](tags);
+          for (var j = 0; j < callbacks.length; j += 1) {
+            callbacks[j](tags);
           }
 
           if (typeof data.id === "string" && data.id !== Glimr.glimrId) {
