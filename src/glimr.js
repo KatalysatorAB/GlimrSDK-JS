@@ -109,17 +109,29 @@
       }
     },
 
-    getTags: function(pixelId, callback) {
+    getKeywordTags: function(pixelId) {
       var cachedTags = Glimr._getOrUnmarshalCache(pixelId);
       var cacheKey = this.currentArticleCacheKey();
 
-      if (cachedTags[cacheKey]) {
-        callback(cachedTags[cacheKey]);
-        return;
+      if (!cachedTags[cacheKey]) {
+        cachedTags[cacheKey] = [];
       }
 
+      return cachedTags[cacheKey];
+    },
+
+    getTags: function(pixelId, callback) {
       if (!Glimr._loadingTags) {
         Glimr._loadingTags = {};
+      }
+
+      if (!Glimr._loadedTags) {
+        Glimr._loadedTags = {};
+      }
+
+      if (Glimr._loadedTags[pixelId]) {
+        callback(Glimr._loadedTags[pixelId]);
+        return;
       }
 
       if (typeof Glimr._loadingTags[pixelId] !== "undefined") {
@@ -133,6 +145,8 @@
       try {
         Glimr.initGlimrId();
 
+        var cacheKey = this.currentArticleCacheKey();
+
         Glimr.JSONP((Glimr.url.host + Glimr.url.tags).replace(":id", pixelId) + "?id=" + Glimr.glimrId, function(data) {
           var tags = [];
           if (data && data.tags) {
@@ -143,7 +157,14 @@
             Glimr._updateCache(pixelId, data.cache);
           }
 
-          Glimr._getOrUnmarshalCache(pixelId)[cacheKey] = tags;
+          var cachedTags = Glimr.getKeywordTags(pixelId);
+          for (var i = 0; i < cachedTags.length; i += 1) {
+            if (tags.indexOf(cachedTags[i]) === -1) {
+              tags.push(cachedTags[i]);
+            }
+          }
+
+          Glimr._loadedTags[pixelId] = tags;
 
           var callbacks = Glimr._loadingTags[pixelId];
           delete Glimr._loadingTags[pixelId];
@@ -191,6 +212,9 @@
       if (Glimr.useLocalStorage) {
         localStorage["glimrArticleTags_" + pixelId] = Glimr._marshalTags(cache);
         localStorage["glimrArticleTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
+      }
+      if (!Glimr._articleCache) {
+        Glimr._articleCache = {};
       }
       Glimr._articleCache[pixelId] = cache;
     },

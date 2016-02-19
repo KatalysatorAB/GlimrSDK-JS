@@ -76,7 +76,6 @@ describe('tag_cache', function() {
       isDone = false;
 
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
-        tags = fetchedTags;
         isDone = true;
       });
     });
@@ -86,10 +85,10 @@ describe('tag_cache', function() {
     });
 
     runs(function() {
-      var glimrTags = Glimr._unmarshalTags(localStorage["glimrArticleTags_" + "keywords_cache_normal"]);
-      expect(tags.length).toBe(2);
-      expect(tags).toContain("tag_1");
-      expect(tags).toContain("tag_2");
+      var glimrTags = Glimr._unmarshalTags(localStorage["glimrArticleTags_" + "keywords_cache_normal"])["6666cd76f96956469e7be39d750cc7d9"];
+      expect(glimrTags.length).toBe(2);
+      expect(glimrTags).toContain("tag_1");
+      expect(glimrTags).toContain("tag_2");
     });
   });
 
@@ -138,9 +137,11 @@ describe('tag_cache', function() {
     });
 
     runs(function() {
-      expect(tags1.length).toBe(2);
+      expect(tags1.length).toBe(4);
       expect(tags1).toContain("tag_1");
       expect(tags1).toContain("tag_2");
+      expect(tags1).toContain("tag_10");
+      expect(tags1).toContain("tag_12");
 
       expect(tags2.length).toBe(3);
       expect(tags2).toContain("le_tag");
@@ -171,9 +172,11 @@ describe('tag_cache', function() {
 
       Glimr.useLocalStorage = true;
 
-      expect(tags.length).toBe(2);
+      expect(tags.length).toBe(4);
       expect(tags).toContain("tag_10");
       expect(tags).toContain("tag_12");
+      expect(tags).toContain("tag_1");
+      expect(tags).toContain("tag_2");
     });
   });
 });
