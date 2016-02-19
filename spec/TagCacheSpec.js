@@ -148,4 +148,32 @@ describe('tag_cache', function() {
       expect(tags2).toContain("a_tag");
     });
   });
+
+  it("should work without localStorage", function() {
+    Glimr.useLocalStorage = false;
+
+    var isDone = false;
+    var tags;
+
+    runs(function() {
+      Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
+        tags = fetchedTags;
+        isDone = true;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(localStorage["glimrArticleTags_" + "keywords_cache_normal"]).toBeUndefined();
+
+      Glimr.useLocalStorage = true;
+
+      expect(tags.length).toBe(2);
+      expect(tags).toContain("tag_10");
+      expect(tags).toContain("tag_12");
+    });
+  });
 });

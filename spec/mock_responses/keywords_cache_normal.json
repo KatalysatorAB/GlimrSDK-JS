@@ -1,5 +1,5 @@
 {
-  "tags": [],
+  "tags": ["tag_10", "tag_12"],
   "cache": {
     "6666cd76f96956469e7be39d750cc7d9": ["tag_1", "tag_2"],
     "d41d8cd98f00b204e9800998ecf8427e": ["tag_3", "tag_4"],

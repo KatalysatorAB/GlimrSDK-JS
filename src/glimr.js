@@ -5,6 +5,8 @@
   var GLIMR_TAGS_PATH = "/v3/iptags/:id/";
 
   var Glimr = {
+    useLocalStorage: !!window.localStorage,
+
     url: {
       host: GLIMR_HOST,
       tags: GLIMR_TAGS_PATH
@@ -181,8 +183,10 @@
     },
 
     _updateCache: function(pixelId, cache) {
-      localStorage["glimrArticleTags_" + pixelId] = Glimr._marshalTags(cache);
-      localStorage["glimrArticleTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
+      if (Glimr.useLocalStorage) {
+        localStorage["glimrArticleTags_" + pixelId] = Glimr._marshalTags(cache);
+        localStorage["glimrArticleTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
+      }
       Glimr._articleCache[pixelId] = cache;
     },
 
@@ -191,7 +195,7 @@
         Glimr._articleCache = {};
       }
 
-      if (localStorage["glimrArticleTags_" + pixelId]) {
+      if (Glimr.useLocalStorage && localStorage["glimrArticleTags_" + pixelId]) {
         Glimr._articleCache[pixelId] = Glimr._unmarshalTags(localStorage["glimrArticleTags_" + pixelId]);
       }
       return Glimr._articleCache[pixelId] || {};
