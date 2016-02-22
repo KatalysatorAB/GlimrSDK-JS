@@ -153,7 +153,6 @@
       try {
         Glimr.initGlimrId();
 
-        var cacheKey = this.currentArticleCacheKey();
         var pixelLastUpdated = this.getPixelLastUpdated(pixelId);
         var extraParams = "";
         if (pixelLastUpdated) {
