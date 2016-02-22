@@ -17,6 +17,7 @@
     "prebuild:js": "npm run lint",
     "build:js": "$(npm bin)/uglifyjs --compress --mangle --reserved=Glimr src/glimr.js > dist/glimr.min.js",
     "build": "npm run build:js",
-    "server": "php -S 0.0.0.0:8080 -t test/"
+    "testem": "testem",
+    "testserver": "node spec/server.js"
   }
 }

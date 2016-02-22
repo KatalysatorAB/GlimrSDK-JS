@@ -105,7 +105,15 @@
       if (Glimr._currentCacheKey) {
         return Glimr._currentCacheKey;
       } else {
-        return MD5(document.location.pathname);
+        return MD5(document.location.pathname).substr(0, 10);
+      }
+    },
+
+    getPixelLastUpdated: function(pixelId) {
+      if (Glimr.useLocalStorage) {
+        return localStorage["glimrArticleTags_" + pixelId + "_lastUpdate"] || false;
+      } else {
+        return false;
       }
     },
 
@@ -146,8 +154,13 @@
         Glimr.initGlimrId();
 
         var cacheKey = this.currentArticleCacheKey();
+        var pixelLastUpdated = this.getPixelLastUpdated(pixelId);
+        var extraParams = "";
+        if (pixelLastUpdated) {
+          extraParams += "&keywords_last_updated=" + pixelLastUpdated;
+        }
 
-        Glimr.JSONP((Glimr.url.host + Glimr.url.tags).replace(":id", pixelId) + "?id=" + Glimr.glimrId, function(data) {
+        Glimr.JSONP((Glimr.url.host + Glimr.url.tags).replace(":id", pixelId) + "?id=" + Glimr.glimrId + extraParams, function(data) {
           var tags = [];
           if (data && data.tags) {
             tags = data.tags;
@@ -202,7 +215,7 @@
       var cachePieces = [];
       for (var key in cache) {
         if (cache.hasOwnProperty(key)) {
-          cachePieces.push(key + "=" + cache[key].join(","));
+          cachePieces.push(key.substr(0, 10) + "=" + cache[key].join(","));
         }
       }
       return cachePieces.join("|");
@@ -216,7 +229,14 @@
       if (!Glimr._articleCache) {
         Glimr._articleCache = {};
       }
-      Glimr._articleCache[pixelId] = cache;
+      if (!Glimr._articleCache[pixelId]) {
+        Glimr._articleCache[pixelId] = {};
+      }
+      for (var key in cache) {
+        if (cache.hasOwnProperty(key)) {
+          Glimr._articleCache[pixelId][key.substr(0, 10)] = cache[key];
+        }
+      }
     },
 
     _getOrUnmarshalCache: function(pixelId) {

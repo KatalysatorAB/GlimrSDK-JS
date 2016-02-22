@@ -39,17 +39,17 @@ describe('tag_cache', function() {
 
     runs(function() {
       var glimrTags = Glimr._unmarshalTags(localStorage["glimrArticleTags_" + "keywords_cache_normal"]);
-      expect(glimrTags["6666cd76f96956469e7be39d750cc7d9"].length).toBe(2);
-      expect(glimrTags["6666cd76f96956469e7be39d750cc7d9"]).toContain("tag_1");
-      expect(glimrTags["6666cd76f96956469e7be39d750cc7d9"]).toContain("tag_2");
+      expect(glimrTags["6666cd76f9"].length).toBe(2);
+      expect(glimrTags["6666cd76f9"]).toContain("tag_1");
+      expect(glimrTags["6666cd76f9"]).toContain("tag_2");
 
-      expect(glimrTags["d41d8cd98f00b204e9800998ecf8427e"].length).toBe(2);
-      expect(glimrTags["d41d8cd98f00b204e9800998ecf8427e"]).toContain("tag_3");
-      expect(glimrTags["d41d8cd98f00b204e9800998ecf8427e"]).toContain("tag_4");
+      expect(glimrTags["d41d8cd98f"].length).toBe(2);
+      expect(glimrTags["d41d8cd98f"]).toContain("tag_3");
+      expect(glimrTags["d41d8cd98f"]).toContain("tag_4");
 
-      expect(glimrTags["752efa2ae35bbcaa9fea2f7b27f65de8"].length).toBe(2);
-      expect(glimrTags["752efa2ae35bbcaa9fea2f7b27f65de8"]).toContain("tag_5");
-      expect(glimrTags["752efa2ae35bbcaa9fea2f7b27f65de8"]).toContain("tag_6");
+      expect(glimrTags["752efa2ae3"].length).toBe(2);
+      expect(glimrTags["752efa2ae3"]).toContain("tag_5");
+      expect(glimrTags["752efa2ae3"]).toContain("tag_6");
     });
   });
 
@@ -59,7 +59,7 @@ describe('tag_cache', function() {
 
     // Fetch tags normally
     runs(function() {
-      Glimr._currentCacheKey = "6666cd76f96956469e7be39d750cc7d9"; // Check the keywords_cache_normal to see why this value was chosen
+      Glimr._currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
 
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
         isDone = true;
@@ -88,7 +88,7 @@ describe('tag_cache', function() {
     });
 
     runs(function() {
-      var cachedTags = Glimr._unmarshalTags(localStorage["glimrArticleTags_" + "keywords_cache_normal"])["6666cd76f96956469e7be39d750cc7d9"];
+      var cachedTags = Glimr._unmarshalTags(localStorage["glimrArticleTags_" + "keywords_cache_normal"])["6666cd76f9"];
       expect(cachedTags.length).toBe(2);
       expect(cachedTags).toContain("tag_1");
       expect(cachedTags).toContain("tag_2");
@@ -108,7 +108,7 @@ describe('tag_cache', function() {
 
     // Fetch tags normally
     runs(function() {
-      Glimr._currentCacheKey = "6666cd76f96956469e7be39d750cc7d9"; // Check the keywords_cache_normal to see why this value was chosen
+      Glimr._currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
 
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
         isDone1 = true;
