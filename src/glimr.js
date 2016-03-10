@@ -117,7 +117,7 @@
       }
     },
 
-    getKeywordTags: function(pixelId) {
+    getCachedTags: function(pixelId) {
       var cachedTags = Glimr._getOrUnmarshalCache(pixelId);
       var cacheKey = this.currentArticleCacheKey();
 
@@ -169,7 +169,7 @@
             Glimr._updateCache(pixelId, data.cache);
           }
 
-          var cachedTags = Glimr.getKeywordTags(pixelId);
+          var cachedTags = Glimr.getCachedTags(pixelId);
           for (var i = 0; i < cachedTags.length; i += 1) {
             if (tags.indexOf(cachedTags[i]) === -1) {
               tags.push(cachedTags[i]);
