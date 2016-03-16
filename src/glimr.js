@@ -195,6 +195,21 @@
       }
     },
 
+    getTagsAndPushToDataLayer: function(pixelId, callback) {
+      Glimr.getTags(pixelId, function(tags) {
+        if (window.dataLayer && window.dataLayer.push) {
+          window.dataLayer.push({
+            "glimrTags": tags,
+            "event": "glimr.tags"
+          });
+        }
+
+        if (callback && typeof callback === "function") {
+          callback();
+        }
+      });
+    },
+
     _unmarshalTags: function(tags) {
       if (!tags) {
         return {};
