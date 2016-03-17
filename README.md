@@ -4,8 +4,8 @@ JavaScript SDK for glimr.io.
 
 The current version can be accessed from here:
 
-https://storage.googleapis.com/glimr-static/glimrsdk-js/1.2.0/glimr.min.js
-https://storage.googleapis.com/glimr-static/glimrsdk-js/1.2.0/glimr.js
+- https://storage.googleapis.com/glimr-static/glimrsdk-js/1.2.0/glimr.min.js
+- https://storage.googleapis.com/glimr-static/glimrsdk-js/1.2.0/glimr.js
 
 ## Usage
 
