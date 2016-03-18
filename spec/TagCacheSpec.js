@@ -59,7 +59,7 @@ describe('tag_cache', function() {
 
     // Fetch tags normally
     runs(function() {
-      Glimr.state.currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
+      Glimr.state.currentURLCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
 
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
         isDone = true;
@@ -108,7 +108,7 @@ describe('tag_cache', function() {
 
     // Fetch tags normally
     runs(function() {
-      Glimr.state.currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
+      Glimr.state.currentURLCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
 
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
         isDone1 = true;
@@ -164,7 +164,7 @@ describe('tag_cache', function() {
     var tags;
 
     runs(function() {
-      Glimr.state.currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
+      Glimr.state.currentURLCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
 
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
         tags = fetchedTags;

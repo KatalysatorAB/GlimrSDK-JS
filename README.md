@@ -21,13 +21,13 @@ Glimr.getTags("YOUR_CLIENT_ID", function(tags) {
 
 _Note:_ The `getTags`-call is cached for the duration of the page load. So calling it multiple times will only result in one call to the Glimr servers. The cache is cleared on page refresh.
 
-### .getCachedTags
+### .getCachedURLTags
 
 Glimr can prefetch tags for you, saving you having to make a request on every page load for a certain subset of tags. This method will not make an API call. If no call has been made previously, it will return an empty array.
 
 
 ```js
-var tags = Glimr.getCachedTags("YOUR_CLIENT_ID");
+var tags = Glimr.getCachedURLTags("YOUR_CLIENT_ID");
 console.log("Cached tags", tags);
 ```
 
@@ -36,7 +36,7 @@ console.log("Cached tags", tags);
 Does the same calls as `Glimr.getTags`, but instead of a callback it simply pushes the tags to the global variable named `dataLayer`, which Google Tag Manager uses.
 
 ```js
-var tags = Glimr.getCachedTags("YOUR_CLIENT_ID");
+var tags = Glimr.getCachedURLTags("YOUR_CLIENT_ID");
 console.log("Cached tags", tags);
 ```
 

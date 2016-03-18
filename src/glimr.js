@@ -124,7 +124,7 @@
 
     this.useLocalStorage = !!window.localStorage;
     this.state = {
-      articleCache: {},
+      urlCache: {},
       loadingTags: {},
       loadedTags: {}
     };
@@ -154,9 +154,9 @@
     Library.createCookie("__glmrid", this.glimrId);
   };
 
-  Gp.currentArticleCacheKey = function() {
-    if (this.state.currentCacheKey) {
-      return this.state.currentCacheKey;
+  Gp.currentURLCacheKey = function() {
+    if (this.state.currentURLCacheKey) {
+      return this.state.currentURLCacheKey;
     } else {
       return MD5(document.location.pathname).substr(0, 10);
     }
@@ -170,9 +170,9 @@
     }
   };
 
-  Gp.getCachedTags = function(pixelId) {
+  Gp.getCachedURLTags = function(pixelId) {
     var cachedTags = this._getOrUnmarshalCache(pixelId);
-    var cacheKey = this.currentArticleCacheKey();
+    var cacheKey = this.currentURLCacheKey();
 
     if (!cachedTags[cacheKey]) {
       cachedTags[cacheKey] = [];
@@ -180,6 +180,10 @@
 
     return cachedTags[cacheKey];
   };
+
+  Gp.getCachedTags = function(pixelId) {
+    return this.getCachedURLTags.apply(this, arguments);
+  }
 
   Gp.getTags = function(pixelId, callback) {
     if (this.state.loadedTags[pixelId]) {
@@ -203,14 +207,14 @@
         }
 
         if (data && data.cache) {
-          this._updateArticleCache(pixelId, data.cache);
+          this._updateURLCache(pixelId, data.cache);
         }
 
         if (this.usesTagCache()) {
           this._updateTagCache(pixelId, tags);
         }
 
-        var cachedTags = this.getCachedTags(pixelId);
+        var cachedTags = this.getCachedURLTags(pixelId);
         for (var i = 0; i < cachedTags.length; i += 1) {
           if (tags.indexOf(cachedTags[i]) === -1) {
             tags.push(cachedTags[i]);
@@ -238,9 +242,9 @@
 
   Gp._getLocalTags = function(pixelId, callback) {
     var storedTags = localStorage["glimrTags_" + pixelId].split(",");
-    var articleTags = this.getCachedTags(pixelId);
+    var urlTags = this.getCachedURLTags(pixelId);
 
-    callback(storedTags.concat(articleTags));
+    callback(storedTags.concat(urlTags));
   };
 
   Gp._requestTags = function(pixelId, userCallback, parseCallback) {
@@ -313,26 +317,26 @@
     return cachePieces.join("|");
   };
 
-  Gp._updateArticleCache = function(pixelId, cache) {
+  Gp._updateURLCache = function(pixelId, cache) {
     if (this.useLocalStorage) {
       localStorage["glimrArticleTags_" + pixelId] = this._marshalTags(cache);
       localStorage["glimrArticleTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
     }
-    if (!this.state.articleCache[pixelId]) {
-      this.state.articleCache[pixelId] = {};
+    if (!this.state.urlCache[pixelId]) {
+      this.state.urlCache[pixelId] = {};
     }
     for (var key in cache) {
       if (cache.hasOwnProperty(key)) {
-        this.state.articleCache[pixelId][key.substr(0, 10)] = cache[key];
+        this.state.urlCache[pixelId][key.substr(0, 10)] = cache[key];
       }
     }
   };
 
   Gp._getOrUnmarshalCache = function(pixelId) {
     if (this.useLocalStorage && localStorage["glimrArticleTags_" + pixelId]) {
-      this.state.articleCache[pixelId] = this._unmarshalTags(localStorage["glimrArticleTags_" + pixelId]);
+      this.state.urlCache[pixelId] = this._unmarshalTags(localStorage["glimrArticleTags_" + pixelId]);
     }
-    return this.state.articleCache[pixelId] || {};
+    return this.state.urlCache[pixelId] || {};
   };
 
   Gp._updateTagCache = function(pixelId, tags) {
