@@ -4,20 +4,37 @@
   var GLIMR_HOST = "//pixel.glimr.io";
   var GLIMR_TAGS_PATH = "/v3/iptags/:id/";
 
+  var MAX_CACHE_TIME = 300;
+
   var MD5 = function() {};
 
-  var Glimr = {
-    useLocalStorage: !!window.localStorage,
+  var CACHE_TIMINGS = {
+    tags: 0
+  };
 
-    url: {
-      host: GLIMR_HOST,
-      tags: GLIMR_TAGS_PATH
+  var Library = {
+    // From: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_objects/Function/bind
+    bindFunction: function(oThis, func) {
+      var aArgs = Array.prototype.slice.call(arguments, 2);
+      var fToBind = func;
+      var fNOP = function() {};
+      var fBound = function() {
+        return fToBind.apply(this instanceof fNOP ? this : oThis, aArgs.concat(Array.prototype.slice.call(arguments)));
+      };
+
+      if (func.prototype) {
+        // Function.prototype doesn't have a prototype property
+        fNOP.prototype = func.prototype;
+      }
+
+      fBound.prototype = new fNOP();
+
+      return fBound;
     },
 
-    // Force set a cache key
-    _currentCacheKey: null,
-
     JSONP: function(url, callback) {
+      Glimr.networkRequests++;
+
       var timestamp = new Date().getTime();
       var generatedFunction = "glmrjsonp" + Math.round(timestamp + Math.random() * 1000001);
 
@@ -87,183 +104,243 @@
         d = Math.floor(d / 16);
         return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
       });
-    },
-
-    initGlimrId: function() {
-      Glimr.glimrId = Glimr.readCookie("__glmrid");
-      if (!Glimr.glimrId) {
-        Glimr.glimrId = Glimr.generateUUID();
-        Glimr.setCookie();
-      }
-    },
-
-    setCookie: function() {
-      Glimr.createCookie("__glmrid", Glimr.glimrId);
-    },
-
-    currentArticleCacheKey: function() {
-      if (Glimr._currentCacheKey) {
-        return Glimr._currentCacheKey;
-      } else {
-        return MD5(document.location.pathname).substr(0, 10);
-      }
-    },
-
-    getPixelLastUpdated: function(pixelId) {
-      if (Glimr.useLocalStorage) {
-        return localStorage["glimrArticleTags_" + pixelId + "_lastUpdate"] || false;
-      } else {
-        return false;
-      }
-    },
-
-    getCachedTags: function(pixelId) {
-      var cachedTags = Glimr._getOrUnmarshalCache(pixelId);
-      var cacheKey = this.currentArticleCacheKey();
-
-      if (!cachedTags[cacheKey]) {
-        cachedTags[cacheKey] = [];
-      }
-
-      return cachedTags[cacheKey];
-    },
-
-    getTags: function(pixelId, callback) {
-      if (!Glimr._loadingTags) {
-        Glimr._loadingTags = {};
-      }
-
-      if (!Glimr._loadedTags) {
-        Glimr._loadedTags = {};
-      }
-
-      if (Glimr._loadedTags[pixelId]) {
-        callback(Glimr._loadedTags[pixelId]);
-        return;
-      }
-
-      if (typeof Glimr._loadingTags[pixelId] !== "undefined") {
-        Glimr._loadingTags[pixelId].push(callback);
-        return;
-      }
-
-      Glimr._loadingTags[pixelId] = [];
-      Glimr._loadingTags[pixelId].push(callback);
-
-      try {
-        Glimr.initGlimrId();
-
-        var pixelLastUpdated = this.getPixelLastUpdated(pixelId);
-        var extraParams = "";
-        if (pixelLastUpdated) {
-          extraParams += "&keywords_last_updated=" + pixelLastUpdated;
-        }
-
-        Glimr.JSONP((Glimr.url.host + Glimr.url.tags).replace(":id", pixelId) + "?id=" + Glimr.glimrId + extraParams, function(data) {
-          var tags = [];
-          if (data && data.tags) {
-            tags = data.tags;
-          }
-
-          if (data && data.cache) {
-            Glimr._updateCache(pixelId, data.cache);
-          }
-
-          var cachedTags = Glimr.getCachedTags(pixelId);
-          for (var i = 0; i < cachedTags.length; i += 1) {
-            if (tags.indexOf(cachedTags[i]) === -1) {
-              tags.push(cachedTags[i]);
-            }
-          }
-
-          Glimr._loadedTags[pixelId] = tags;
-
-          var callbacks = Glimr._loadingTags[pixelId];
-          delete Glimr._loadingTags[pixelId];
-
-          for (var j = 0; j < callbacks.length; j += 1) {
-            callbacks[j](tags);
-          }
-
-          if (typeof data.id === "string" && data.id !== Glimr.glimrId) {
-            Glimr.glimrId = data.id;
-            Glimr.setCookie();
-          }
-        });
-      } catch (e) {
-        callback([]);
-      }
-    },
-
-    getTagsAndPushToDataLayer: function(pixelId, callback) {
-      Glimr.getTags(pixelId, function(tags) {
-        if (window.dataLayer && window.dataLayer.push) {
-          window.dataLayer.push({
-            "glimrTags": tags,
-            "event": "glimr.tags"
-          });
-        }
-
-        if (callback && typeof callback === "function") {
-          callback();
-        }
-      });
-    },
-
-    _unmarshalTags: function(tags) {
-      if (!tags) {
-        return {};
-      }
-
-      var allTags = tags.split("|");
-      var cacheMap = {};
-      for (var i = 0; i < allTags.length; i += 1 ) {
-        var equalsPosition = allTags[i].indexOf("=");
-        var name = allTags[i].substring(0, equalsPosition);
-        cacheMap[name] = allTags[i].substring(equalsPosition + 1).split(",");
-      }
-      return cacheMap;
-    },
-
-    _marshalTags: function(cache) {
-      var cachePieces = [];
-      for (var key in cache) {
-        if (cache.hasOwnProperty(key)) {
-          cachePieces.push(key.substr(0, 10) + "=" + cache[key].join(","));
-        }
-      }
-      return cachePieces.join("|");
-    },
-
-    _updateCache: function(pixelId, cache) {
-      if (Glimr.useLocalStorage) {
-        localStorage["glimrArticleTags_" + pixelId] = Glimr._marshalTags(cache);
-        localStorage["glimrArticleTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
-      }
-      if (!Glimr._articleCache) {
-        Glimr._articleCache = {};
-      }
-      if (!Glimr._articleCache[pixelId]) {
-        Glimr._articleCache[pixelId] = {};
-      }
-      for (var key in cache) {
-        if (cache.hasOwnProperty(key)) {
-          Glimr._articleCache[pixelId][key.substr(0, 10)] = cache[key];
-        }
-      }
-    },
-
-    _getOrUnmarshalCache: function(pixelId) {
-      if (!Glimr._articleCache) {
-        Glimr._articleCache = {};
-      }
-
-      if (Glimr.useLocalStorage && localStorage["glimrArticleTags_" + pixelId]) {
-        Glimr._articleCache[pixelId] = Glimr._unmarshalTags(localStorage["glimrArticleTags_" + pixelId]);
-      }
-      return Glimr._articleCache[pixelId] || {};
     }
   };
+
+  var GlimrClass = function() {
+    this.constructor = GlimrClass;
+    this.initialize();
+  };
+
+  var Gp = GlimrClass.prototype;
+
+  Gp.initialize = function() {
+    this.networkRequests = 0;
+
+    this.url = {
+      host: GLIMR_HOST,
+      tags: GLIMR_TAGS_PATH
+    };
+
+    this.useLocalStorage = !!window.localStorage;
+    this.state = {
+      articleCache: {},
+      loadingTags: {},
+      loadedTags: {}
+    };
+  }
+
+  Gp.initGlimrId = function() {
+    this.glimrId = Library.readCookie("__glmrid");
+    if (!this.glimrId) {
+      this.glimrId = Library.generateUUID();
+      this.setGlimrCookie();
+    }
+  };
+
+  Gp.setCacheTimeInSeconds = function(seconds) {
+    if (seconds > MAX_CACHE_TIME) {
+      seconds = MAX_CACHE_TIME;
+    }
+
+    CACHE_TIMINGS.tags = seconds;
+  };
+
+  Gp.getCacheTime = function() {
+    return CACHE_TIMINGS.tags;
+  };
+
+  Gp.setGlimrCookie = function() {
+    Library.createCookie("__glmrid", this.glimrId);
+  };
+
+  Gp.currentArticleCacheKey = function() {
+    if (this.state.currentCacheKey) {
+      return this.state.currentCacheKey;
+    } else {
+      return MD5(document.location.pathname).substr(0, 10);
+    }
+  };
+
+  Gp.getPixelLastUpdated = function(pixelId) {
+    if (this.useLocalStorage) {
+      return localStorage["glimrArticleTags_" + pixelId + "_lastUpdate"] || false;
+    } else {
+      return false;
+    }
+  };
+
+  Gp.getCachedTags = function(pixelId) {
+    var cachedTags = this._getOrUnmarshalCache(pixelId);
+    var cacheKey = this.currentArticleCacheKey();
+
+    if (!cachedTags[cacheKey]) {
+      cachedTags[cacheKey] = [];
+    }
+
+    return cachedTags[cacheKey];
+  };
+
+  Gp.getTags = function(pixelId, callback) {
+    if (this.state.loadedTags[pixelId]) {
+      callback(this.state.loadedTags[pixelId]);
+      return;
+    }
+
+    if (typeof this.state.loadingTags[pixelId] !== "undefined") {
+      this.state.loadingTags[pixelId].push(callback);
+      return;
+    }
+
+    this.state.loadingTags[pixelId] = [];
+    this.state.loadingTags[pixelId].push(callback);
+
+    try {
+      this._requestTags(pixelId, callback, Library.bindFunction(this, function(data) {
+        var tags = [];
+        if (data && data.tags) {
+          tags = data.tags;
+        }
+
+        if (data && data.cache) {
+          this._updateArticleCache(pixelId, data.cache);
+        }
+
+        if (this.usesTagCache()) {
+          this._updateTagCache(pixelId, tags);
+        }
+
+        var cachedTags = this.getCachedTags(pixelId);
+        for (var i = 0; i < cachedTags.length; i += 1) {
+          if (tags.indexOf(cachedTags[i]) === -1) {
+            tags.push(cachedTags[i]);
+          }
+        }
+
+        this.state.loadedTags[pixelId] = tags;
+
+        var callbacks = this.state.loadingTags[pixelId];
+        delete this.state.loadingTags[pixelId];
+
+        for (var j = 0; j < callbacks.length; j += 1) {
+          callbacks[j](tags);
+        }
+
+        if (typeof data.id === "string" && data.id !== this.glimrId) {
+          this.glimrId = data.id;
+          this.setGlimrCookie();
+        }
+      }));
+    } catch (e) {
+      callback([]);
+    }
+  };
+
+  Gp._getLocalTags = function(pixelId, callback) {
+    var storedTags = localStorage["glimrTags_" + pixelId].split(",");
+    var articleTags = this.getCachedTags(pixelId);
+
+    callback(storedTags.concat(articleTags));
+  };
+
+  Gp._requestTags = function(pixelId, userCallback, parseCallback) {
+    this.initGlimrId();
+
+    var pixelLastUpdated = this.getPixelLastUpdated(pixelId);
+
+    var extraParams = "";
+    if (pixelLastUpdated) {
+      extraParams += "&keywords_last_updated=" + pixelLastUpdated;
+    }
+
+    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId + extraParams;
+
+    // If cache is enabled we check the validity of the tag cache
+    if (this.usesTagCache()) {
+      var lastUpdated = parseInt(localStorage["glimrTags_" + pixelId + "_lastUpdate"], 10);
+      var now = new Date().getTime();
+
+      if (!isNaN(lastUpdated) && (now - lastUpdated) / 1000 < CACHE_TIMINGS.tags) {
+        this._getLocalTags(pixelId, userCallback);
+        return;
+      }
+    }
+
+    Library.JSONP(requestUrl, parseCallback);
+  }
+
+  Gp.getTagsAndPushToDataLayer = function(pixelId, callback) {
+    this.getTags(pixelId, function(tags) {
+      if (window.dataLayer && window.dataLayer.push) {
+        window.dataLayer.push({
+          "glimrTags": tags,
+          "event": "glimr.tags"
+        });
+      }
+
+      if (callback && typeof callback === "function") {
+        callback();
+      }
+    });
+  };
+
+  Gp.usesTagCache = function() {
+    return CACHE_TIMINGS.tags > 0 && this.useLocalStorage;
+  };
+
+  Gp._unmarshalTags = function(tags) {
+    if (!tags) {
+      return {};
+    }
+
+    var allTags = tags.split("|");
+    var cacheMap = {};
+    for (var i = 0; i < allTags.length; i += 1 ) {
+      var equalsPosition = allTags[i].indexOf("=");
+      var name = allTags[i].substring(0, equalsPosition);
+      cacheMap[name] = allTags[i].substring(equalsPosition + 1).split(",");
+    }
+    return cacheMap;
+  };
+
+  Gp._marshalTags = function(cache) {
+    var cachePieces = [];
+    for (var key in cache) {
+      if (cache.hasOwnProperty(key)) {
+        cachePieces.push(key.substr(0, 10) + "=" + cache[key].join(","));
+      }
+    }
+    return cachePieces.join("|");
+  };
+
+  Gp._updateArticleCache = function(pixelId, cache) {
+    if (this.useLocalStorage) {
+      localStorage["glimrArticleTags_" + pixelId] = this._marshalTags(cache);
+      localStorage["glimrArticleTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
+    }
+    if (!this.state.articleCache[pixelId]) {
+      this.state.articleCache[pixelId] = {};
+    }
+    for (var key in cache) {
+      if (cache.hasOwnProperty(key)) {
+        this.state.articleCache[pixelId][key.substr(0, 10)] = cache[key];
+      }
+    }
+  };
+
+  Gp._getOrUnmarshalCache = function(pixelId) {
+    if (this.useLocalStorage && localStorage["glimrArticleTags_" + pixelId]) {
+      this.state.articleCache[pixelId] = this._unmarshalTags(localStorage["glimrArticleTags_" + pixelId]);
+    }
+    return this.state.articleCache[pixelId] || {};
+  };
+
+  Gp._updateTagCache = function(pixelId, tags) {
+    if (this.useLocalStorage) {
+      localStorage["glimrTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
+      localStorage["glimrTags_" + pixelId] = tags.join(",");
+    }
+  }
 
   MD5 = function(string) {
     function rotateLeft(lValue, iShiftBits) {
@@ -493,5 +570,5 @@
     return temp.toLowerCase();
   };
 
-  window.Glimr = Glimr;
+  window.Glimr = new GlimrClass();
 })(window);

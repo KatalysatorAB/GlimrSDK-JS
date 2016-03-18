@@ -2,8 +2,8 @@ describe('tag_cache', function() {
   // These tests use the public `Glimr.getTags` and then verify by checking localStorage
 
   beforeEach(function() {
-    setupGlimrMockServer();
     clearGlimrValues();
+    setupGlimrMockServer();
   });
 
   it('should fetch a cache structure of tags', function() {
@@ -59,7 +59,7 @@ describe('tag_cache', function() {
 
     // Fetch tags normally
     runs(function() {
-      Glimr._currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
+      Glimr.state.currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
 
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
         isDone = true;
@@ -73,7 +73,7 @@ describe('tag_cache', function() {
     // Try to fetch tags when server crashed
     runs(function() {
       setupGlimrCrashedServer();
-      delete Glimr._loadedTags["keywords_cache_normal"];
+      delete Glimr.state.loadedTags["keywords_cache_normal"];
 
       isDone = false;
 
@@ -108,7 +108,7 @@ describe('tag_cache', function() {
 
     // Fetch tags normally
     runs(function() {
-      Glimr._currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
+      Glimr.state.currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
 
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
         isDone1 = true;
@@ -164,6 +164,8 @@ describe('tag_cache', function() {
     var tags;
 
     runs(function() {
+      Glimr.state.currentCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
+
       Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
         tags = fetchedTags;
         isDone = true;
