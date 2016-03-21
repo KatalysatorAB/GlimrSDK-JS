@@ -138,7 +138,7 @@
     }
   };
 
-  Gp.setCacheTimeInSeconds = function(seconds) {
+  Gp.setTagCacheTimeInSeconds = function(seconds) {
     if (seconds > MAX_CACHE_TIME) {
       seconds = MAX_CACHE_TIME;
     }
@@ -146,7 +146,7 @@
     CACHE_TIMINGS.tags = seconds;
   };
 
-  Gp.getCacheTime = function() {
+  Gp.getTagCacheTimeInSeconds = function() {
     return CACHE_TIMINGS.tags;
   };
 

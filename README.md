@@ -21,15 +21,32 @@ Glimr.getTags("YOUR_CLIENT_ID", function(tags) {
 
 _Note:_ The `getTags`-call is cached for the duration of the page load. So calling it multiple times will only result in one call to the Glimr servers. The cache is cleared on page refresh.
 
+### .setTagCacheTimeInSeconds
+
+The tags from `Glimr.getTags` can be cached for a duration of up to 5 minutes. The tags don't change too often so it's a good idea to limit network traffic on the client.
+
+```js
+Glimr.setTagCacheTimeInSeconds(300);
+
+// Max cache time is 5 minutes because otherwise you risk losing tags
+// Passing anything > 300 will become 300
+Glimr.setTagCacheTimeInSeconds(600);
+console.log(Glimr.getTagCacheTimeInSeconds());
+// ... 300
+```
+
+The tags are currently only stored in `localStorage`. If `localStorage` is not available on the client no caching will happen.
+
 ### .getCachedURLTags
 
-Glimr can prefetch tags for you, saving you having to make a request on every page load for a certain subset of tags. This method will not make an API call. If no call has been made previously, it will return an empty array.
-
+Glimr crawls your web property and knows which URL indicates a set of tags, based on filters you setup in the dashboard. The Glimr SDK can download and cache this database in an efficiant manner, and you can use it to get tags without having to make a network request. To fetch the tags associated with the current browser URL you call `Glimr.getCachedURLTags` which does a fast synchronous lookup.
 
 ```js
 var tags = Glimr.getCachedURLTags("YOUR_CLIENT_ID");
 console.log("Cached tags", tags);
 ```
+
+**Note:** This method used to be called `.getCachedTags`. For backwards compatibility it will exist until the next major release.
 
 ### .getTagsAndPushToDataLayer
 
@@ -61,7 +78,7 @@ The tags are then available under the `dataLayer` variable `glimrTags`. Recommen
 
 ![](https://storage.googleapis.com/glimr-static/glimrsdk-js/screenshots/variable.png)
 
-To use the variable in a custom HTML-tag you use the `{{}}`-notation to fetch variables.
+To use the variable in a custom HTML-tag you use the `{{}}`-notation:
 
 ```html
 <script>
@@ -70,7 +87,7 @@ alert("Glimr tags: " + glimrTags.join(", "));
 </script>
 ```
 
-**Note**: Pre-requisite for this is that a custom variable has been added.
+**Note**: Pre-requisite for this is that a custom variable has been added as per the aforementioned screenshot.
 
 ## Development
 

@@ -172,9 +172,9 @@ describe('tags', function(){
   });
 
   it('should be able to cache for max 5 minutes', function() {
-    Glimr.setCacheTimeInSeconds(600);
+    Glimr.setTagCacheTimeInSeconds(600);
 
-    expect(Glimr.getCacheTime()).toBe(300);
+    expect(Glimr.getTagCacheTimeInSeconds()).toBe(300);
   });
 
   it('should be able to cache a response for a time', function() {
@@ -189,7 +189,7 @@ describe('tags', function(){
     function simulatePageReload() {
       clearGlimrState();
       setupGlimrMockServer();
-      Glimr.setCacheTimeInSeconds(2);
+      Glimr.setTagCacheTimeInSeconds(2);
     }
 
     simulatePageReload();
