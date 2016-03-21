@@ -17,23 +17,23 @@
     bindFunction: function(oThis, func) {
       var aArgs = Array.prototype.slice.call(arguments, 2);
       var fToBind = func;
-      var fNOP = function() {};
+      var NOP = function() {};
       var fBound = function() {
-        return fToBind.apply(this instanceof fNOP ? this : oThis, aArgs.concat(Array.prototype.slice.call(arguments)));
+        return fToBind.apply(this instanceof NOP ? this : oThis, aArgs.concat(Array.prototype.slice.call(arguments)));
       };
 
       if (func.prototype) {
         // Function.prototype doesn't have a prototype property
-        fNOP.prototype = func.prototype;
+        NOP.prototype = func.prototype;
       }
 
-      fBound.prototype = new fNOP();
+      fBound.prototype = new NOP();
 
       return fBound;
     },
 
     JSONP: function(url, callback) {
-      Glimr.networkRequests++;
+      window.Glimr.networkRequests += 1;
 
       var timestamp = new Date().getTime();
       var generatedFunction = "glmrjsonp" + Math.round(timestamp + Math.random() * 1000001);
@@ -128,7 +128,7 @@
       loadingTags: {},
       loadedTags: {}
     };
-  }
+  };
 
   Gp.initGlimrId = function() {
     this.glimrId = Library.readCookie("__glmrid");
@@ -183,7 +183,7 @@
 
   Gp.getCachedTags = function(pixelId) {
     return this.getCachedURLTags.apply(this, arguments);
-  }
+  };
 
   Gp.getTags = function(pixelId, callback) {
     if (this.state.loadedTags[pixelId]) {
@@ -271,7 +271,7 @@
     }
 
     Library.JSONP(requestUrl, parseCallback);
-  }
+  };
 
   Gp.getTagsAndPushToDataLayer = function(pixelId, callback) {
     this.getTags(pixelId, function(tags) {
@@ -344,7 +344,7 @@
       localStorage["glimrTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
       localStorage["glimrTags_" + pixelId] = tags.join(",");
     }
-  }
+  };
 
   MD5 = function(string) {
     function rotateLeft(lValue, iShiftBits) {
