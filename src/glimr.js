@@ -182,6 +182,9 @@
   };
 
   Gp.getCachedTags = function(pixelId) {
+    if (window.console && window.console.warn) {
+      window.console.warn("`Glimr.getCachedTags` has been deprecated in favor of `Glimr.getCachedURLTags` for getting pre-fetched tags synchronously. `Glimr.getCachedTags` and `Glimr.getCachedURLTags` only return a subset of the available tags, use `Glimr.getTags` for fetching all tags, which takes care of caching behind the scenes.");
+    }
     return this.getCachedURLTags.apply(this, arguments);
   };
 
