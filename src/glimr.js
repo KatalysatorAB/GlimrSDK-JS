@@ -202,45 +202,41 @@
     this.state.loadingTags[pixelId] = [];
     this.state.loadingTags[pixelId].push(callback);
 
-    try {
-      this._requestTags(pixelId, callback, Library.bindFunction(this, function(data) {
-        var tags = [];
-        if (data && data.tags) {
-          tags = data.tags;
+    this._requestTags(pixelId, callback, Library.bindFunction(this, function(data) {
+      var tags = [];
+      if (data && data.tags) {
+        tags = data.tags;
+      }
+
+      if (data && data.cache) {
+        this._updateURLCache(pixelId, data.cache);
+      }
+
+      if (this.usesTagCache()) {
+        this._updateTagCache(pixelId, tags);
+      }
+
+      var cachedTags = this.getCachedURLTags(pixelId);
+      for (var i = 0; i < cachedTags.length; i += 1) {
+        if (tags.indexOf(cachedTags[i]) === -1) {
+          tags.push(cachedTags[i]);
         }
+      }
 
-        if (data && data.cache) {
-          this._updateURLCache(pixelId, data.cache);
-        }
+      this.state.loadedTags[pixelId] = tags;
 
-        if (this.usesTagCache()) {
-          this._updateTagCache(pixelId, tags);
-        }
+      var callbacks = this.state.loadingTags[pixelId];
+      delete this.state.loadingTags[pixelId];
 
-        var cachedTags = this.getCachedURLTags(pixelId);
-        for (var i = 0; i < cachedTags.length; i += 1) {
-          if (tags.indexOf(cachedTags[i]) === -1) {
-            tags.push(cachedTags[i]);
-          }
-        }
+      for (var j = 0; j < callbacks.length; j += 1) {
+        callbacks[j](tags);
+      }
 
-        this.state.loadedTags[pixelId] = tags;
-
-        var callbacks = this.state.loadingTags[pixelId];
-        delete this.state.loadingTags[pixelId];
-
-        for (var j = 0; j < callbacks.length; j += 1) {
-          callbacks[j](tags);
-        }
-
-        if (typeof data.id === "string" && data.id !== this.glimrId) {
-          this.glimrId = data.id;
-          this.setGlimrCookie();
-        }
-      }));
-    } catch (e) {
-      callback([]);
-    }
+      if (typeof data.id === "string" && data.id !== this.glimrId) {
+        this.glimrId = data.id;
+        this.setGlimrCookie();
+      }
+    }));
   };
 
   Gp._getLocalTags = function(pixelId, callback) {
