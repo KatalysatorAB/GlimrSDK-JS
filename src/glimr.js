@@ -138,6 +138,8 @@
     }
   };
 
+  // tags.js
+
   Gp.setTagCacheTimeInSeconds = function(seconds) {
     if (seconds > MAX_CACHE_TIME) {
       seconds = MAX_CACHE_TIME;
@@ -290,6 +292,52 @@
   Gp.usesTagCache = function() {
     return CACHE_TIMINGS.tags > 0 && this.useLocalStorage;
   };
+
+  // end tags.js
+
+  // serialize.js
+
+  Gp.objectToQuery = function(dictionary) {
+    var ret = [];
+    for (var key in dictionary) {
+      if (Object.prototype.hasOwnProperty.call(dictionary, key)) {
+        var value = dictionary[key];
+
+        if (typeof value === "object" && value.constructor === Array) {
+          ret.push(Gp.arrayToQuery(value, key));
+        } else if (typeof key === "object") {
+          ret.push(Gp.objectToQuery(value));
+        } else {
+          ret.push(Gp.escapeStringForQuery(key) + "=" + Gp.escapeStringForQuery(value));
+        }
+
+        ret.push("&");
+      }
+    }
+
+    // Remove last &
+    ret.pop();
+
+    return ret.join("");
+  };
+
+  Gp.arrayToQuery = function(arr, key) {
+    key = key || "";
+    var escapedKey = Gp.escapeStringForQuery(key);
+
+    var ret = [];
+    for (var i = 0, j = arr.length; i < j; i++) {
+      var value = Gp.escapeStringForQuery(arr[i])
+      ret.push(escapedKey + "=" + value);
+    }
+    return ret.join("&");
+  };
+
+  Gp.escapeStringForQuery = function(str) {
+    return encodeURIComponent(str);
+  }
+
+  // end serialize.js
 
   Gp._unmarshalTags = function(tags) {
     if (!tags) {

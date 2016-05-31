@@ -1,0 +1,7 @@
+{
+  "tags": {
+    "key1": ["apple", "banana"],
+    "key2": "orange",
+    "key3": ["sugar"]
+  }
+}
