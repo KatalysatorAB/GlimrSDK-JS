@@ -334,8 +334,8 @@
     var escapedKey = this.escapeStringForQuery(key);
 
     var ret = [];
-    for (var i = 0, j = arr.length; i < j; i++) {
-      var value = this.escapeStringForQuery(arr[i])
+    for (var i = 0, j = arr.length; i < j; i += 1) {
+      var value = this.escapeStringForQuery(arr[i]);
       ret.push(escapedKey + "=" + value);
     }
     return ret.join("&");
@@ -345,7 +345,7 @@
     var ret = {};
 
     var arr = str.split("&");
-    for (var i = 0, j = arr.length; i < j; i++) {
+    for (var i = 0, j = arr.length; i < j; i += 1) {
       var pieces = arr[i].split("=");
 
       var key = this.unescapeStringForQuery(pieces[0] || "");
