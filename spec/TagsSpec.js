@@ -27,6 +27,29 @@ describe('tags', function(){
     });
   });
 
+  it('should fetch a dictionary of tags for a publisher id', function() {
+    var isDone = false;
+    var tags;
+
+    runs(function() {
+      Glimr.getTags("with_dictionary_key_values", function(fetchedTags) {
+        tags = fetchedTags;
+        isDone = true;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(tags.key1).toContain("apple");
+      expect(tags.key1).toContain("banana");
+      expect(tags.key2).toBe("orange");
+      expect(tags.key3).toContain("sugar");
+    });
+  });
+
   it('should fetch an empty list of tags when no tags are found', function() {
     var isDone = false;
     var tags;
@@ -94,7 +117,7 @@ describe('tags', function(){
     });
   });
 
-  it('should return thing by calling it twice in succession', function() {
+  it('should return the same array by calling it twice in succession', function() {
     var isDone = false;
     var tags;
 
@@ -134,6 +157,51 @@ describe('tags', function(){
       expect(tags).toContain("banana");
       expect(tags).toContain("orange");
       expect(tags).toContain("apple");
+
+      isDone = false;
+    });
+  });
+
+  it('should return the same dictionary by calling it twice in succession', function() {
+    var isDone = false;
+    var tags;
+
+    runs(function() {
+      Glimr.getTags("with_dictionary_key_values", function(fetchedTags) {
+        tags = fetchedTags;
+        isDone = true;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(tags.key1).toContain("apple");
+      expect(tags.key1).toContain("banana");
+      expect(tags.key2).toBe("orange");
+      expect(tags.key3).toContain("sugar");
+
+      isDone = false;
+    });
+
+    runs(function() {
+      Glimr.getTags("with_dictionary_key_values", function(fetchedTags) {
+        tags = fetchedTags;
+        isDone = true;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(tags.key1).toContain("apple");
+      expect(tags.key1).toContain("banana");
+      expect(tags.key2).toBe("orange");
+      expect(tags.key3).toContain("sugar");
 
       isDone = false;
     });
@@ -263,4 +331,49 @@ describe('tags', function(){
       expect(networkRequests).toEqual(2);
     });
   });
+
+  it('should be able to fetch dictionary tags from cache', function() {
+    var isDone = false;
+    var tags;
+
+    // Fetch tags normally
+    runs(function() {
+      Glimr.setTagCacheTimeInSeconds(300);
+
+      Glimr.getTags("with_dictionary_key_values", function(fetchedTags) {
+        isDone = true;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    // Try to fetch tags when server crashed
+    runs(function() {
+      setupGlimrCrashedServer();
+      Glimr.state = {};
+      Glimr.initialize();
+
+      isDone = false;
+
+      Glimr.setTagCacheTimeInSeconds(300);
+      Glimr.getTags("with_dictionary_key_values", function(fetchedTags) {
+        isDone = true;
+        tags = fetchedTags;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(tags.key1).toContain("apple");
+      expect(tags.key1).toContain("banana");
+      expect(tags.key2).toContain("orange");
+      expect(tags.key3).toContain("sugar");
+    });
+  });
+
 });

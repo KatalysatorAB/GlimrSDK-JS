@@ -12,6 +12,8 @@
     tags: 0
   };
 
+  var V2_PREFIX = "[v2]:";
+
   var Library = {
     // From: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_objects/Function/bind
     bindFunction: function(oThis, func) {
@@ -242,10 +244,16 @@
   };
 
   Gp._getLocalTags = function(pixelId, callback) {
-    var storedTags = localStorage["glimrTags_" + pixelId].split(",");
+    var storedTags = this._deserializeTags(localStorage["glimrTags_" + pixelId]);
     var urlTags = this.getCachedURLTags(pixelId);
 
-    callback(storedTags.concat(urlTags));
+    // v1
+    if (typeof storedTags === "object" && storedTags.constructor === Array) {
+      callback(storedTags.concat(urlTags));
+    } else {
+      storedTags.page = urlTags;
+      callback(storedTags);
+    }
   };
 
   Gp._requestTags = function(pixelId, userCallback, parseCallback) {
@@ -304,11 +312,11 @@
         var value = dictionary[key];
 
         if (typeof value === "object" && value.constructor === Array) {
-          ret.push(Gp.arrayToQuery(value, key));
+          ret.push(this.arrayToQuery(value, key));
         } else if (typeof key === "object") {
-          ret.push(Gp.objectToQuery(value));
+          ret.push(this.objectToQuery(value));
         } else {
-          ret.push(Gp.escapeStringForQuery(key) + "=" + Gp.escapeStringForQuery(value));
+          ret.push(this.escapeStringForQuery(key) + "=" + this.escapeStringForQuery(value));
         }
 
         ret.push("&");
@@ -323,19 +331,45 @@
 
   Gp.arrayToQuery = function(arr, key) {
     key = key || "";
-    var escapedKey = Gp.escapeStringForQuery(key);
+    var escapedKey = this.escapeStringForQuery(key);
 
     var ret = [];
     for (var i = 0, j = arr.length; i < j; i++) {
-      var value = Gp.escapeStringForQuery(arr[i])
+      var value = this.escapeStringForQuery(arr[i])
       ret.push(escapedKey + "=" + value);
     }
     return ret.join("&");
   };
 
+  Gp.queryToObject = function(str) {
+    var ret = {};
+
+    var arr = str.split("&");
+    for (var i = 0, j = arr.length; i < j; i++) {
+      var pieces = arr[i].split("=");
+
+      var key = this.unescapeStringForQuery(pieces[0] || "");
+      var value = this.unescapeStringForQuery(pieces[1] || "");
+
+      if (typeof ret[key] === "undefined") {
+        ret[key] = [];
+      }
+
+      if (value.length > 0) {
+        ret[key].push(value);
+      }
+    }
+
+    return ret;
+  };
+
   Gp.escapeStringForQuery = function(str) {
     return encodeURIComponent(str);
-  }
+  };
+
+  Gp.unescapeStringForQuery = function(str) {
+    return decodeURIComponent(str);
+  };
 
   // end serialize.js
 
@@ -349,7 +383,7 @@
     for (var i = 0; i < allTags.length; i += 1 ) {
       var equalsPosition = allTags[i].indexOf("=");
       var name = allTags[i].substring(0, equalsPosition);
-      cacheMap[name] = allTags[i].substring(equalsPosition + 1).split(",");
+      cacheMap[name] = this._deserializeTags(allTags[i].substring(equalsPosition + 1));
     }
     return cacheMap;
   };
@@ -358,7 +392,7 @@
     var cachePieces = [];
     for (var key in cache) {
       if (cache.hasOwnProperty(key)) {
-        cachePieces.push(key.substr(0, 10) + "=" + cache[key].join(","));
+        cachePieces.push(key.substr(0, 10) + "=" + this._serializeTags(cache[key]));
       }
     }
     return cachePieces.join("|");
@@ -386,10 +420,28 @@
     return this.state.urlCache[pixelId] || {};
   };
 
+  Gp._serializeTags = function(tags) {
+    if (typeof tags === "object" && tags.constructor === Array) {
+      return tags.join(",");
+    } else {
+      return V2_PREFIX + this.objectToQuery(tags);
+    }
+  };
+
+  Gp._deserializeTags = function(tagString) {
+    tagString = tagString || "";
+
+    if (tagString.substr(0, V2_PREFIX.length) === V2_PREFIX) {
+      return this.queryToObject(tagString.substr(V2_PREFIX.length));
+    } else {
+      return tagString.split(",");
+    }
+  };
+
   Gp._updateTagCache = function(pixelId, tags) {
     if (this.useLocalStorage) {
       localStorage["glimrTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
-      localStorage["glimrTags_" + pixelId] = tags.join(",");
+      localStorage["glimrTags_" + pixelId] = this._serializeTags(tags);
     }
   };
 

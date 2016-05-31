@@ -99,7 +99,6 @@ describe('tag_cache', function() {
     });
   });
 
-
   it("should keep tags separate by pixelId", function() {
     var isDone1 = false;
     var isDone2 = false;

@@ -66,4 +66,17 @@ describe('serialization', function(){
     expect(objectDictionaryString).toBe("key1=%26%20%5B%5D%3F&key2%5B%5D=123");
     expect(arrayValuesString).toBe("key=%26%20%5B%5D%3F&key=132%26%3F");
   });
+
+  it('should be able to deserialize into an object', function() {
+    // Setup
+    var complexQueryString = "key1=%26%20%5B%5D%3F'%22&key1=%26%C3%A5%C3%A4%C3%B6&key2%5B%5D=123&%20%C3%B6%20%25%26=123";
+
+    // Act
+    var data = Glimr.queryToObject(complexQueryString);
+
+    // Verify
+    expect(data["key1"]).toEqual(["& []?'\"", "&åäö"]);
+    expect(data["key2[]"]).toEqual(["123"]);
+    expect(data[" ö %&"]).toEqual(["123"]);
+  });
 });
