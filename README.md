@@ -11,14 +11,25 @@ The current version can be accessed from here:
 
 ### .getTags
 
-`void Glimr.getTags( string clientId, function(array) callback )`
+`void Glimr.getTags( string clientId, function(array, object) callback )`
 
-Fetch all tags associated with the current browser client.
+Fetch all tags associated with the current browser client. The callback should accept 1 array and 1 object parameter. Depending on the version of the Glimr API used, the object parameter might be empty.
 
 ```js
-Glimr.getTags("YOUR_CLIENT_ID", function(tags) {
+Glimr.getTags("YOUR_CLIENT_ID", function(tags, tagMappings) {
   console.log("Tags for client:", tags);
+  console.log("... :", tagMappings);
 });
+```
+
+The object is simply the array of tags but with mappings of meanings. The response might be:
+
+```js
+tags = ["apple", "banana", "orange"];
+tagMappings = {
+  yellow: ["banana", "orange"],
+  red: ["apple"]
+};
 ```
 
 _Note:_ The `getTags`-call is cached for the duration of the page load. So calling it multiple times will only result in one call to the Glimr servers. The cache is cleared on page refresh.

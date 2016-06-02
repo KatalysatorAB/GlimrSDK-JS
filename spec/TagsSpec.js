@@ -29,11 +29,11 @@ describe('tags', function(){
 
   it('should fetch a dictionary of tags for a publisher id', function() {
     var isDone = false;
-    var tags;
+    var tagMappings;
 
     runs(function() {
-      Glimr.getTags("with_dictionary_key_values", function(fetchedTags) {
-        tags = fetchedTags;
+      Glimr.getTags("with_dictionary_key_values", function(x, fetchedTagMappings) {
+        tagMappings = fetchedTagMappings;
         isDone = true;
       });
     });
@@ -43,10 +43,10 @@ describe('tags', function(){
     });
 
     runs(function() {
-      expect(tags.key1).toContain("apple");
-      expect(tags.key1).toContain("banana");
-      expect(tags.key2).toBe("orange");
-      expect(tags.key3).toContain("sugar");
+      expect(tagMappings.key1).toContain("apple");
+      expect(tagMappings.key1).toContain("banana");
+      expect(tagMappings.key2).toBe("orange");
+      expect(tagMappings.key3).toContain("sugar");
     });
   });
 
@@ -164,11 +164,11 @@ describe('tags', function(){
 
   it('should return the same dictionary by calling it twice in succession', function() {
     var isDone = false;
-    var tags;
+    var tagMappings;
 
     runs(function() {
-      Glimr.getTags("with_dictionary_key_values", function(fetchedTags) {
-        tags = fetchedTags;
+      Glimr.getTags("with_dictionary_key_values", function(x, fetchedTagMappings) {
+        tagMappings = fetchedTagMappings;
         isDone = true;
       });
     });
@@ -178,17 +178,17 @@ describe('tags', function(){
     });
 
     runs(function() {
-      expect(tags.key1).toContain("apple");
-      expect(tags.key1).toContain("banana");
-      expect(tags.key2).toBe("orange");
-      expect(tags.key3).toContain("sugar");
+      expect(tagMappings.key1).toContain("apple");
+      expect(tagMappings.key1).toContain("banana");
+      expect(tagMappings.key2).toBe("orange");
+      expect(tagMappings.key3).toContain("sugar");
 
       isDone = false;
     });
 
     runs(function() {
-      Glimr.getTags("with_dictionary_key_values", function(fetchedTags) {
-        tags = fetchedTags;
+      Glimr.getTags("with_dictionary_key_values", function(_, fetchedTagMappings) {
+        tagMappings = fetchedTagMappings;
         isDone = true;
       });
     });
@@ -198,10 +198,10 @@ describe('tags', function(){
     });
 
     runs(function() {
-      expect(tags.key1).toContain("apple");
-      expect(tags.key1).toContain("banana");
-      expect(tags.key2).toBe("orange");
-      expect(tags.key3).toContain("sugar");
+      expect(tagMappings.key1).toContain("apple");
+      expect(tagMappings.key1).toContain("banana");
+      expect(tagMappings.key2).toBe("orange");
+      expect(tagMappings.key3).toContain("sugar");
 
       isDone = false;
     });
@@ -334,7 +334,7 @@ describe('tags', function(){
 
   it('should be able to fetch dictionary tags from cache', function() {
     var isDone = false;
-    var tags;
+    var tagMappings;
 
     // Fetch tags normally
     runs(function() {
@@ -358,9 +358,9 @@ describe('tags', function(){
       isDone = false;
 
       Glimr.setTagCacheTimeInSeconds(300);
-      Glimr.getTags("with_dictionary_key_values", function(fetchedTags) {
+      Glimr.getTags("with_dictionary_key_values", function(_, fetchedTagMappings) {
         isDone = true;
-        tags = fetchedTags;
+        tagMappings = fetchedTagMappings;
       });
     });
 
@@ -369,10 +369,10 @@ describe('tags', function(){
     });
 
     runs(function() {
-      expect(tags.key1).toContain("apple");
-      expect(tags.key1).toContain("banana");
-      expect(tags.key2).toContain("orange");
-      expect(tags.key3).toContain("sugar");
+      expect(tagMappings.key1).toContain("apple");
+      expect(tagMappings.key1).toContain("banana");
+      expect(tagMappings.key2).toContain("orange");
+      expect(tagMappings.key3).toContain("sugar");
     });
   });
 

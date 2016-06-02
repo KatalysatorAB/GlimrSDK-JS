@@ -2,7 +2,7 @@
   "use strict";
 
   var GLIMR_HOST = "//pixel.glimr.io";
-  var GLIMR_TAGS_PATH = "/v3/iptags/:id/";
+  var GLIMR_TAGS_PATH = "/v4/iptags/:id/";
 
   var MAX_CACHE_TIME = 300;
 
@@ -15,6 +15,26 @@
   var V2_PREFIX = "[v2]:";
 
   var Library = {
+    flattenObjectIntoArray: function(obj) {
+      var ret = [];
+      for (var key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          var data = obj[key];
+
+          if (typeof data === "object" && data.constructor === Array) {
+            for (var i = 0, j = data.length; i < j; i += 1) {
+              ret.push(key);
+            }
+          } else if (typeof data === "object") {
+            ret = ret.concat(Library.Library.flattenObjectIntoArray(data));
+          } else {
+            ret.push(data);
+          }
+        }
+      }
+      return ret;
+    },
+
     // From: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_objects/Function/bind
     bindFunction: function(oThis, func) {
       var aArgs = Array.prototype.slice.call(arguments, 2);
@@ -194,7 +214,8 @@
 
   Gp.getTags = function(pixelId, callback) {
     if (this.state.loadedTags[pixelId]) {
-      callback(this.state.loadedTags[pixelId]);
+      var response = this.state.loadedTags[pixelId];
+      callback(response[0], response[1]);
       return;
     }
 
@@ -208,8 +229,16 @@
 
     this._requestTags(pixelId, callback, Library.bindFunction(this, function(data) {
       var tags = [];
+      var tagMappings = {};
+      var toCache = tags;
       if (data && data.tags) {
         tags = data.tags;
+        toCache = tags;
+      }
+
+      if (data && data.mapping) {
+        tagMappings = data.mapping;
+        toCache = tagMappings;
       }
 
       if (data && data.cache) {
@@ -217,23 +246,25 @@
       }
 
       if (this.usesTagCache()) {
-        this._updateTagCache(pixelId, tags);
+        this._updateTagCache(pixelId, toCache);
       }
 
       var cachedTags = this.getCachedURLTags(pixelId);
       for (var i = 0; i < cachedTags.length; i += 1) {
         if (tags.indexOf(cachedTags[i]) === -1) {
           tags.push(cachedTags[i]);
+          tagMappings.urlTags = tagMappings.urlTags || [];
+          tagMappings.urlTags.push(cachedTags[i]);
         }
       }
 
-      this.state.loadedTags[pixelId] = tags;
+      this.state.loadedTags[pixelId] = [tags, tagMappings];
 
       var callbacks = this.state.loadingTags[pixelId];
       delete this.state.loadingTags[pixelId];
 
       for (var j = 0; j < callbacks.length; j += 1) {
-        callbacks[j](tags);
+        callbacks[j](tags, tagMappings);
       }
 
       if (typeof data.id === "string" && data.id !== this.glimrId) {
@@ -249,10 +280,12 @@
 
     // v1
     if (typeof storedTags === "object" && storedTags.constructor === Array) {
-      callback(storedTags.concat(urlTags));
+      callback(storedTags.concat(urlTags), {urlTags: urlTags});
     } else {
-      storedTags.page = urlTags;
-      callback(storedTags);
+      storedTags.urlTags = urlTags;
+
+      var tagsArray = Library.flattenObjectIntoArray(storedTags);
+      callback(tagsArray, storedTags);
     }
   };
 
