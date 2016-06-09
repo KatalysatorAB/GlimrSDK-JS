@@ -2,7 +2,7 @@
   "use strict";
 
   var GLIMR_HOST = "//pixel.glimr.io";
-  var GLIMR_TAGS_PATH = "/v3/iptags/:id/";
+  var GLIMR_TAGS_PATH = "/v4/iptags/:id/";
 
   var MAX_CACHE_TIME = 300;
 
@@ -12,7 +12,29 @@
     tags: 0
   };
 
+  var V2_PREFIX = "[v2]:";
+
   var Library = {
+    flattenObjectIntoArray: function(obj) {
+      var ret = [];
+      for (var key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          var data = obj[key];
+
+          if (typeof data === "object" && data.constructor === Array) {
+            for (var i = 0, j = data.length; i < j; i += 1) {
+              ret.push(key);
+            }
+          } else if (typeof data === "object") {
+            ret = ret.concat(Library.Library.flattenObjectIntoArray(data));
+          } else {
+            ret.push(data);
+          }
+        }
+      }
+      return ret;
+    },
+
     // From: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_objects/Function/bind
     bindFunction: function(oThis, func) {
       var aArgs = Array.prototype.slice.call(arguments, 2);
@@ -138,6 +160,8 @@
     }
   };
 
+  // tags.js
+
   Gp.setTagCacheTimeInSeconds = function(seconds) {
     if (seconds > MAX_CACHE_TIME) {
       seconds = MAX_CACHE_TIME;
@@ -190,7 +214,8 @@
 
   Gp.getTags = function(pixelId, callback) {
     if (this.state.loadedTags[pixelId]) {
-      callback(this.state.loadedTags[pixelId]);
+      var response = this.state.loadedTags[pixelId];
+      callback(response[0], response[1]);
       return;
     }
 
@@ -204,8 +229,16 @@
 
     this._requestTags(pixelId, callback, Library.bindFunction(this, function(data) {
       var tags = [];
+      var tagMappings = {};
+      var toCache = tags;
       if (data && data.tags) {
         tags = data.tags;
+        toCache = tags;
+      }
+
+      if (data && data.mapping) {
+        tagMappings = data.mapping;
+        toCache = tagMappings;
       }
 
       if (data && data.cache) {
@@ -213,23 +246,25 @@
       }
 
       if (this.usesTagCache()) {
-        this._updateTagCache(pixelId, tags);
+        this._updateTagCache(pixelId, toCache);
       }
 
       var cachedTags = this.getCachedURLTags(pixelId);
       for (var i = 0; i < cachedTags.length; i += 1) {
         if (tags.indexOf(cachedTags[i]) === -1) {
           tags.push(cachedTags[i]);
+          tagMappings.urlTags = tagMappings.urlTags || [];
+          tagMappings.urlTags.push(cachedTags[i]);
         }
       }
 
-      this.state.loadedTags[pixelId] = tags;
+      this.state.loadedTags[pixelId] = [tags, tagMappings];
 
       var callbacks = this.state.loadingTags[pixelId];
       delete this.state.loadingTags[pixelId];
 
       for (var j = 0; j < callbacks.length; j += 1) {
-        callbacks[j](tags);
+        callbacks[j](tags, tagMappings);
       }
 
       if (typeof data.id === "string" && data.id !== this.glimrId) {
@@ -240,10 +275,18 @@
   };
 
   Gp._getLocalTags = function(pixelId, callback) {
-    var storedTags = localStorage["glimrTags_" + pixelId].split(",");
+    var storedTags = this._deserializeTags(localStorage["glimrTags_" + pixelId]);
     var urlTags = this.getCachedURLTags(pixelId);
 
-    callback(storedTags.concat(urlTags));
+    // v1
+    if (typeof storedTags === "object" && storedTags.constructor === Array) {
+      callback(storedTags.concat(urlTags), {urlTags: urlTags});
+    } else {
+      storedTags.urlTags = urlTags;
+
+      var tagsArray = Library.flattenObjectIntoArray(storedTags);
+      callback(tagsArray, storedTags);
+    }
   };
 
   Gp._requestTags = function(pixelId, userCallback, parseCallback) {
@@ -291,6 +334,78 @@
     return CACHE_TIMINGS.tags > 0 && this.useLocalStorage;
   };
 
+  // end tags.js
+
+  // serialize.js
+
+  Gp.objectToQuery = function(dictionary) {
+    var ret = [];
+    for (var key in dictionary) {
+      if (Object.prototype.hasOwnProperty.call(dictionary, key)) {
+        var value = dictionary[key];
+
+        if (typeof value === "object" && value.constructor === Array) {
+          ret.push(this.arrayToQuery(value, key));
+        } else if (typeof key === "object") {
+          ret.push(this.objectToQuery(value));
+        } else {
+          ret.push(this.escapeStringForQuery(key) + "=" + this.escapeStringForQuery(value));
+        }
+
+        ret.push("&");
+      }
+    }
+
+    // Remove last &
+    ret.pop();
+
+    return ret.join("");
+  };
+
+  Gp.arrayToQuery = function(arr, key) {
+    key = key || "";
+    var escapedKey = this.escapeStringForQuery(key);
+
+    var ret = [];
+    for (var i = 0, j = arr.length; i < j; i += 1) {
+      var value = this.escapeStringForQuery(arr[i]);
+      ret.push(escapedKey + "=" + value);
+    }
+    return ret.join("&");
+  };
+
+  Gp.queryToObject = function(str) {
+    var ret = {};
+
+    var arr = str.split("&");
+    for (var i = 0, j = arr.length; i < j; i += 1) {
+      var pieces = arr[i].split("=");
+
+      var key = this.unescapeStringForQuery(pieces[0] || "");
+      var value = this.unescapeStringForQuery(pieces[1] || "");
+
+      if (typeof ret[key] === "undefined") {
+        ret[key] = [];
+      }
+
+      if (value.length > 0) {
+        ret[key].push(value);
+      }
+    }
+
+    return ret;
+  };
+
+  Gp.escapeStringForQuery = function(str) {
+    return encodeURIComponent(str);
+  };
+
+  Gp.unescapeStringForQuery = function(str) {
+    return decodeURIComponent(str);
+  };
+
+  // end serialize.js
+
   Gp._unmarshalTags = function(tags) {
     if (!tags) {
       return {};
@@ -301,7 +416,7 @@
     for (var i = 0; i < allTags.length; i += 1 ) {
       var equalsPosition = allTags[i].indexOf("=");
       var name = allTags[i].substring(0, equalsPosition);
-      cacheMap[name] = allTags[i].substring(equalsPosition + 1).split(",");
+      cacheMap[name] = this._deserializeTags(allTags[i].substring(equalsPosition + 1));
     }
     return cacheMap;
   };
@@ -310,7 +425,7 @@
     var cachePieces = [];
     for (var key in cache) {
       if (cache.hasOwnProperty(key)) {
-        cachePieces.push(key.substr(0, 10) + "=" + cache[key].join(","));
+        cachePieces.push(key.substr(0, 10) + "=" + this._serializeTags(cache[key]));
       }
     }
     return cachePieces.join("|");
@@ -338,10 +453,28 @@
     return this.state.urlCache[pixelId] || {};
   };
 
+  Gp._serializeTags = function(tags) {
+    if (typeof tags === "object" && tags.constructor === Array) {
+      return tags.join(",");
+    } else {
+      return V2_PREFIX + this.objectToQuery(tags);
+    }
+  };
+
+  Gp._deserializeTags = function(tagString) {
+    tagString = tagString || "";
+
+    if (tagString.substr(0, V2_PREFIX.length) === V2_PREFIX) {
+      return this.queryToObject(tagString.substr(V2_PREFIX.length));
+    } else {
+      return tagString.split(",");
+    }
+  };
+
   Gp._updateTagCache = function(pixelId, tags) {
     if (this.useLocalStorage) {
       localStorage["glimrTags_" + pixelId + "_lastUpdate"] = new Date().getTime();
-      localStorage["glimrTags_" + pixelId] = tags.join(",");
+      localStorage["glimrTags_" + pixelId] = this._serializeTags(tags);
     }
   };
 
