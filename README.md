@@ -116,6 +116,25 @@ var queryString = Glimr.arrayToQuery(tags, "my_key");
 // my_key=a&my_key=bcd&my_key=ef
 ```
 
+### .queryToObject
+
+`object Glimr.queryToObject( string )`
+
+Parse a query string into an object. Since multiple entries are supported per key, it always creates an array key. For example:
+
+```javascript
+var queryString = "foo=bar&foo=baz&hello=world";
+
+var object = Glimr.queryToObject("foo=bar&foo=baz&hello=world");
+
+/*
+{
+  foo: ["bar", "baz"],
+  hello: ["world"] // note that hello is also an array
+}
+*/
+```
+
 ### .escapeStringForQuery
 
 `string Glimr.escapeStringForQuery( string value )`
@@ -128,6 +147,18 @@ Usage is easy:
 var escapedString = Glimr.escapeStringForQuery("hello world");
 
 // hello%20world
+```
+
+### .unescapeStringForQuery
+
+`string Glimr.unescapeStringForQuery( string value )`
+
+Does the opposite of `Glimr.escapeStringForQuery`:
+
+```javascript
+var string = Glimr.escapeStringForQuery("hello%20world");
+
+// hello world
 ```
 
 ## Google Tag Manager
