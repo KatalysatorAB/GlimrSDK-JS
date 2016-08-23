@@ -1,6 +1,6 @@
 {
-  "name": "GlimrSDK-JS",
-  "version": "2.0.1",
+  "name": "glimr-sdk",
+  "version": "2.0.2",
   "description": "JavaScript SDK for glimr.io",
   "homepage": "https://glimr.io",
   "keywords": [
