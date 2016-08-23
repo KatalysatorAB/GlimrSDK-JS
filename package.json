@@ -21,6 +21,7 @@
     "build:js": "$(npm bin)/uglifyjs --compress --mangle --reserved=Glimr src/glimr.js > dist/glimr.min.js",
     "build": "npm run build:js",
     "testem": "testem",
-    "testserver": "node spec/server.js"
+    "testserver": "node spec/server.js",
+    "test": "node spec/cli.js"
   }
 }
