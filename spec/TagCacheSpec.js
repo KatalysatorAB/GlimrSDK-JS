@@ -187,4 +187,53 @@ describe('tag_cache', function() {
       expect(tags).toContain("tag_2");
     });
   });
+
+  it('should be able to fetch tags from cache', function() {
+    var isDone = false;
+    var tags;
+
+    // Fetch tags normally
+    runs(function() {
+      Glimr.state.currentURLCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
+      Glimr.setTagCacheTimeInSeconds(300);
+
+      Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
+        isDone = true;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      clearGlimrState();
+      Glimr.state.currentURLCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
+      Glimr.setTagCacheTimeInSeconds(300);
+    });
+
+    // Try to fetch tags 3 times
+    for (var i = 0; i < 3; i++) {
+      runs(function() {
+        isDone = false;
+
+        Glimr.getTags("keywords_cache_normal", function(fetchedTags, b) {
+          isDone = true;
+          tags = fetchedTags;
+        });
+      });
+
+      waitsFor(function() {
+        return isDone;
+      });
+    }
+
+    runs(function() {
+      expect(tags.length).toBe(4);
+      expect(tags).toContain("tag_1");
+      expect(tags).toContain("tag_2");
+      expect(tags).toContain("tag_10");
+      expect(tags).toContain("tag_12");
+    });
+  });
 });

@@ -238,9 +238,6 @@
       return;
     }
 
-    this.state.loadingTags[pixelId] = [];
-    this.state.loadingTags[pixelId].push(callback);
-
     this._requestTags(pixelId, callback, Library.bindFunction(this, function(data) {
       var tags = [];
       var tagMappings = {};
@@ -325,6 +322,9 @@
         return;
       }
     }
+
+    this.state.loadingTags[pixelId] = [];
+    this.state.loadingTags[pixelId].push(userCallback);
 
     Library.JSONP(requestUrl, parseCallback);
   };
