@@ -37,7 +37,7 @@
 
           if (typeof data === "object" && data.constructor === Array) {
             for (var i = 0, j = data.length; i < j; i += 1) {
-              ret.push(key);
+              ret.push(data[i]);
             }
           } else if (typeof data === "object") {
             ret = ret.concat(Library.Library.flattenObjectIntoArray(data));

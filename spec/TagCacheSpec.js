@@ -188,7 +188,7 @@ describe('tag_cache', function() {
     });
   });
 
-  it('should be able to fetch tags from cache', function() {
+  it('should be able to fetch tags from cache and respond the same thing when called multiple times', function() {
     var isDone = false;
     var tags;
 
@@ -234,6 +234,51 @@ describe('tag_cache', function() {
       expect(tags).toContain("tag_2");
       expect(tags).toContain("tag_10");
       expect(tags).toContain("tag_12");
+    });
+  });
+
+  it('should work with cache when response is mapped', function() {
+    var isDone = false;
+    var tags;
+
+    // Fetch tags normally
+    runs(function() {
+      Glimr.setTagCacheTimeInSeconds(300);
+
+      Glimr.getTags("with_mappings", function(fetchedTags) {
+        isDone = true;
+        tags = fetchedTags;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(tags.length).toBe(1);
+      expect(tags).toContain("apple");
+
+      clearGlimrState();
+      Glimr.setTagCacheTimeInSeconds(300);
+    });
+
+    runs(function() {
+      isDone = false;
+
+      Glimr.getTags("with_mappings", function(fetchedTags, b) {
+        isDone = true;
+        tags = fetchedTags;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(tags.length).toBe(1);
+      expect(tags).toContain("apple");
     });
   });
 });
