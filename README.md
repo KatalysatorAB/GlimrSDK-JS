@@ -1,4 +1,4 @@
-# GlimrSDK-JS [![build](https://travis-ci.org/KatalysatorAB/GlimrSDK-JS.svg?branch=master)](https://travis-ci.org/KatalysatorAB/GlimrSDK-JS)
+# GlimrSDK-JS [![JavaScript](https://circleci.com/gh/KatalysatorAB/GlimrSDK-JS.svg?style=svg)](https://circleci.com/gh/KatalysatorAB/GlimrSDK-JS)
 
 JavaScript SDK for glimr.io.
 
