@@ -1,4 +1,4 @@
-(function(window) {
+(function(window, document) {
   "use strict";
 
   var GLIMR_HOST = "//pixel.glimr.io";
@@ -196,7 +196,15 @@
     if (this.state.currentURLCacheKey) {
       return this.state.currentURLCacheKey;
     } else {
-      return MD5(document.location.pathname).substr(0, 10);
+      return MD5(this.currentURLIdentifier()).substr(0, 10);
+    }
+  };
+
+  Gp.currentURLIdentifier = function() {
+    if (document.location.hash && document.location.hash.indexOf("#!") !== -1) {
+      return document.location.hash.replace("#!", "");
+    } else {
+      return document.location.pathname;
     }
   };
 
@@ -308,6 +316,10 @@
     var extraParams = "";
     if (pixelLastUpdated) {
       extraParams += "&keywords_last_updated=" + pixelLastUpdated;
+    }
+
+    if (document.location.hash) {
+      extraParams += "&fragment=" + encodeURIComponent(document.location.hash);
     }
 
     var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId + extraParams;
@@ -721,4 +733,4 @@
   };
 
   window.Glimr = new GlimrClass();
-})(window);
+})(window, window.document);
