@@ -73,7 +73,9 @@ describe('tag_cache', function() {
     // Try to fetch tags when server crashed
     runs(function() {
       setupGlimrCrashedServer();
-      delete Glimr.state.loadedTags["keywords_cache_normal"];
+      clearGlimrState();
+
+      Glimr.state.currentURLCacheKey = "6666cd76f9"; // Check the keywords_cache_normal to see why this value was chosen
 
       isDone = false;
 
@@ -279,6 +281,53 @@ describe('tag_cache', function() {
     runs(function() {
       expect(tags.length).toBe(1);
       expect(tags).toContain("apple");
+    });
+  });
+
+  it("should make network requests if navigated to different URL", function() {
+    var isDone = false;
+    var tags;
+
+    // Fetch tags normally
+    runs(function() {
+      document.location.hash = "#!/";
+      Glimr.setTagCacheTimeInSeconds(300);
+      Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
+        isDone = true;
+        tags = fetchedTags;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(tags.length).toBe(4);
+      expect(tags).toContain("tag_10");
+      expect(tags).toContain("tag_12");
+      expect(tags).toContain("tag_1");
+      expect(tags).toContain("tag_2");
+
+      // Simulate in-page navigation
+      document.location.hash = "#!/example/path";
+
+      isDone = false;
+      Glimr.getTags("keywords_cache_normal", function(fetchedTags) {
+        isDone = true;
+        tags = fetchedTags;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(tags.length).toBe(3);
+      expect(tags).toContain("tag_10");
+      expect(tags).toContain("tag_12");
+      expect(tags).toContain("/example/path");
     });
   });
 });

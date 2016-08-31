@@ -235,18 +235,19 @@
   };
 
   Gp.getTags = function(pixelId, callback) {
-    if (this.state.loadedTags[pixelId]) {
-      var response = this.state.loadedTags[pixelId];
+    var pageCacheId = pixelId + this.currentURLCacheKey();
+    if (this.state.loadedTags[pageCacheId]) {
+      var response = this.state.loadedTags[pageCacheId];
       callback(response[0], response[1]);
       return;
     }
 
-    if (typeof this.state.loadingTags[pixelId] !== "undefined") {
-      this.state.loadingTags[pixelId].push(callback);
+    if (typeof this.state.loadingTags[pageCacheId] !== "undefined") {
+      this.state.loadingTags[pageCacheId].push(callback);
       return;
     }
 
-    this._requestTags(pixelId, callback, Library.bindFunction(this, function(data) {
+    this._requestTags(pixelId, pageCacheId, callback, Library.bindFunction(this, function(data) {
       var tags = [];
       var tagMappings = {};
       var toCache = tags;
@@ -277,10 +278,10 @@
         }
       }
 
-      this.state.loadedTags[pixelId] = [tags, tagMappings];
+      this.state.loadedTags[pageCacheId] = [tags, tagMappings];
 
-      var callbacks = this.state.loadingTags[pixelId];
-      delete this.state.loadingTags[pixelId];
+      var callbacks = this.state.loadingTags[pageCacheId];
+      delete this.state.loadingTags[pageCacheId];
 
       for (var j = 0; j < callbacks.length; j += 1) {
         callbacks[j](tags, tagMappings);
@@ -308,7 +309,7 @@
     }
   };
 
-  Gp._requestTags = function(pixelId, userCallback, parseCallback) {
+  Gp._requestTags = function(pixelId, pageCacheId, userCallback, parseCallback) {
     this.initGlimrId();
 
     var pixelLastUpdated = this.getPixelLastUpdated(pixelId);
@@ -335,8 +336,8 @@
       }
     }
 
-    this.state.loadingTags[pixelId] = [];
-    this.state.loadingTags[pixelId].push(userCallback);
+    this.state.loadingTags[pageCacheId] = [];
+    this.state.loadingTags[pageCacheId].push(userCallback);
 
     Library.JSONP(requestUrl, parseCallback);
   };
