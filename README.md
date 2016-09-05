@@ -66,6 +66,19 @@ console.log("Cached tags", tags);
 
 **Note:** This method used to be called `.getCachedTags`. For backwards compatibility it will exist until the next major release.
 
+### .getCachedBehaviorTags
+
+`array Glimr.getCachedBehaviorTags( string clientId ): Array | boolean`
+
+If `Glimr.setTagCacheTimeInSeconds` has been called this method can be used to peek into the cache without calling `Glimr.getTags`. If the cache is still valid, an array will be returned, otherwise `false`.
+
+**Note:** This returns a different class of tags than `Glimr.getCachedURLTags`. Behavior tags are based on the user and not the current web URL.
+
+```js
+var tags = Glimr.getCachedBehaviorTags("YOUR_CLIENT_ID");
+console.log("Cached tags", tags);
+```
+
 ### .getTagsAndPushToDataLayer
 
 `void Glimr.getTagsAndPushToDataLayer( string clientId )`
