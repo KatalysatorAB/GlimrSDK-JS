@@ -363,7 +363,7 @@
     var now = new Date().getTime();
 
     return !isNaN(lastUpdated) && (now - lastUpdated) / 1000 < CACHE_TIMINGS.tags;
-  }
+  };
 
   // end tags.js
 
