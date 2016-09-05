@@ -287,6 +287,18 @@ describe('tags', function(){
         isDone = true;
         fetchedTags2 = fetchedTags;
 
+        expect(fetchedTags.length).toEqual(3);
+        expect(fetchedTags).toContain("apple");
+        expect(fetchedTags).toContain("orange");
+        expect(fetchedTags).toContain("banana");
+
+        var syncTags = Glimr.getCachedBehaviorTags("with_banana_orange_apple");
+
+        expect(syncTags.length).toEqual(3);
+        expect(syncTags).toContain("apple");
+        expect(syncTags).toContain("orange");
+        expect(syncTags).toContain("banana");
+
         networkRequests += Glimr.networkRequests;
       });
     });

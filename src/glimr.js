@@ -227,11 +227,13 @@
     return cachedTags[cacheKey];
   };
 
-  Gp.getCachedTags = function(pixelId) {
-    if (window.console && window.console.warn) {
-      window.console.warn("`Glimr.getCachedTags` has been deprecated in favor of `Glimr.getCachedURLTags` for getting pre-fetched tags synchronously. `Glimr.getCachedTags` and `Glimr.getCachedURLTags` only return a subset of the available tags, use `Glimr.getTags` for fetching all tags, which takes care of caching behind the scenes.");
+  Gp.getCachedBehaviorTags = function(pixelId) {
+    if (this.usesTagCache() && this.isTagCacheValid(pixelId)) {
+      var params = this._getLocalTags(pixelId);
+      return params[0];
+    } else {
+      return false;
     }
-    return this.getCachedURLTags.apply(this, arguments);
   };
 
   Gp.getTags = function(pixelId, callback) {
@@ -294,18 +296,18 @@
     }));
   };
 
-  Gp._getLocalTags = function(pixelId, callback) {
+  Gp._getLocalTags = function(pixelId) {
     var storedTags = this._deserializeTags(storage["glimrTags_" + pixelId]);
     var urlTags = this.getCachedURLTags(pixelId);
 
     // v1
     if (typeof storedTags === "object" && storedTags.constructor === Array) {
-      callback(storedTags.concat(urlTags), {urlTags: urlTags});
+      return [storedTags.concat(urlTags), {urlTags: urlTags}];
     } else {
       storedTags.urlTags = urlTags;
 
       var tagsArray = Library.flattenObjectIntoArray(storedTags);
-      callback(tagsArray, storedTags);
+      return [tagsArray, storedTags];
     }
   };
 
@@ -325,15 +327,10 @@
 
     var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId + extraParams;
 
-    // If cache is enabled we check the validity of the tag cache
-    if (this.usesTagCache()) {
-      var lastUpdated = parseInt(storage["glimrTags_" + pixelId + "_lastUpdate"], 10);
-      var now = new Date().getTime();
-
-      if (!isNaN(lastUpdated) && (now - lastUpdated) / 1000 < CACHE_TIMINGS.tags) {
-        this._getLocalTags(pixelId, userCallback);
-        return;
-      }
+    if (this.usesTagCache() && this.isTagCacheValid(pixelId)) {
+      var params = this._getLocalTags(pixelId);
+      userCallback(params[0], params[1]);
+      return;
     }
 
     this.state.loadingTags[pageCacheId] = [];
@@ -360,6 +357,13 @@
   Gp.usesTagCache = function() {
     return CACHE_TIMINGS.tags > 0 && this.useLocalStorage;
   };
+
+  Gp.isTagCacheValid = function(pixelId) {
+    var lastUpdated = parseInt(storage["glimrTags_" + pixelId + "_lastUpdate"], 10);
+    var now = new Date().getTime();
+
+    return !isNaN(lastUpdated) && (now - lastUpdated) / 1000 < CACHE_TIMINGS.tags;
+  }
 
   // end tags.js
 
