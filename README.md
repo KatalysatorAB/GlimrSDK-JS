@@ -2,7 +2,12 @@
 
 JavaScript SDK for glimr.io.
 
-The current version can be accessed from here:
+The current major version can be accessed from here:
+
+- https://storage.googleapis.com/glimr-static/glimrsdk-js/3/glimr.min.js
+- https://storage.googleapis.com/glimr-static/glimrsdk-js/3/glimr.js
+
+We follow semver, so the above URL's are the ones you should use to include in your page. The exact version can be accessed from the full version string:
 
 - https://storage.googleapis.com/glimr-static/glimrsdk-js/3.1.0/glimr.min.js
 - https://storage.googleapis.com/glimr-static/glimrsdk-js/3.1.0/glimr.js
@@ -179,7 +184,7 @@ var string = Glimr.escapeStringForQuery("hello%20world");
 Google Tag Manager is supported out of the box. All you need to do is create a custom HTML tag with the following snippet.
 
 ```html
-<script src="https://storage.googleapis.com/glimr-static/glimrsdk-js/3.1.0/glimr.min.js"></script>
+<script src="https://storage.googleapis.com/glimr-static/glimrsdk-js/3/glimr.min.js"></script>
 <script>
 Glimr.getTagsAndPushToDataLayer("YOUR_CLIENT_ID");
 </script>
