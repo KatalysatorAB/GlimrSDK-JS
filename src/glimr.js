@@ -236,6 +236,26 @@
     }
   };
 
+  Gp.getCachedBehaviorTagsAndUpdateInBackground = function(pixelId, options) {
+    options = options || {};
+    options.onUpdate = typeof options.onUpdate === "function" ? options.onUpdate : function() {};
+
+    if (!this.usesTagCache()) {
+      if (window.console) {
+        window.console.error("Caching not enabled. Enable with Glimr.setTagCacheTimeInSeconds(number)");
+      }
+      return [];
+    }
+
+    var cachedTags = this._getLocalTags(pixelId);
+
+    if (!this.isTagCacheValid(pixelId)) {
+      this.getTags(pixelId, options.onUpdate);
+    }
+
+    return cachedTags[0] || false;
+  };
+
   Gp.getTags = function(pixelId, callback) {
     var pageCacheId = pixelId + this.currentURLCacheKey();
     if (this.state.loadedTags[pageCacheId]) {
@@ -498,7 +518,11 @@
     if (tagString.substr(0, V2_PREFIX.length) === V2_PREFIX) {
       return this.queryToObject(tagString.substr(V2_PREFIX.length));
     } else {
-      return tagString.split(",");
+      if (tagString === "") {
+        return [];
+      } else {
+        return tagString.split(",");
+      }
     }
   };
 

@@ -84,6 +84,26 @@ var tags = Glimr.getCachedBehaviorTags("YOUR_CLIENT_ID");
 console.log("Cached tags", tags);
 ```
 
+### .getCachedBehaviorTagsAndUpdateInBackground
+
+`array Glimr.getCachedBehaviorTagsAndUpdateInBackground( string clientId, options: { onUpdate: (tags: Array) => void}): Array<string>`
+
+For some implementors tags need to be used in a synchronous manner, but still need to be updated when possible. Also invalidated tags should still be used. This method works for that use case.
+
+
+```javascript
+Glimr.setTagCacheTimeInSeconds(300);
+var tags = Glimr.getCachedBehaviorTagsAndUpdateInBackground("PIXEL_ID");
+
+// An optional options object can be passed in with an `onUpdate` callback that is passed as a callback to the `Glimr.getTags` call
+
+var tags = Glimr.getCachedBehaviorTagsAndUpdateInBackground("PIXEL_ID", {
+  onUpdate: function(tags) {
+    console.log("tags are updated. New tags", tags);
+  }
+});
+```
+
 ### .getTagsAndPushToDataLayer
 
 `void Glimr.getTagsAndPushToDataLayer( string clientId )`

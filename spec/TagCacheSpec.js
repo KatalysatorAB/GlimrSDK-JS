@@ -330,4 +330,100 @@ describe('tag_cache', function() {
       expect(tags).toContain("/example/path");
     });
   });
+
+  it("should be able to cache tags and respond synchronously", function() {
+    var fetchedTags;
+    var isDone;
+
+    function simulatePageReload() {
+      clearGlimrState();
+      setupGlimrMockServer();
+      Glimr.setTagCacheTimeInSeconds(3);
+    }
+
+    runs(function() {
+      Glimr.setTagCacheTimeInSeconds(3);
+
+      isDone = false;
+      var tags = Glimr.getCachedBehaviorTagsAndUpdateInBackground("with_banana_orange_apple", {
+        onUpdate: function(tags) {
+          console.log(tags);
+          fetchedTags = tags;
+          isDone = true;
+        }
+      });
+
+      // First load no tags are loaded
+      expect(tags.length).toBe(0);
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(fetchedTags.length).toBe(3);
+      expect(fetchedTags).toContain("banana");
+      expect(fetchedTags).toContain("orange");
+      expect(fetchedTags).toContain("apple");
+    });
+
+    runs(function() {
+      simulatePageReload();
+
+      Glimr.setTagCacheTimeInSeconds(3);
+
+      var tags = Glimr.getCachedBehaviorTagsAndUpdateInBackground("with_banana_orange_apple", {
+        onUpdate: function(tags) {
+          throw new Error("Should not be called");
+        }
+      });
+
+      // Second page load load tags exist
+      expect(tags.length).toBe(3);
+      expect(tags).toContain("banana");
+      expect(tags).toContain("orange");
+      expect(tags).toContain("apple");
+
+      isDone = false;
+      setTimeout(function() {
+        isDone = true;
+      }, 5000);
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      simulatePageReload();
+
+      Glimr.setTagCacheTimeInSeconds(3);
+
+      isDone = false;
+      var tags = Glimr.getCachedBehaviorTagsAndUpdateInBackground("with_banana_orange_apple", {
+        onUpdate: function(tags) {
+          fetchedTags = tags;
+          isDone = true;
+        }
+      });
+
+      // Second page load load tags exist
+      expect(tags.length).toBe(3);
+      expect(tags).toContain("banana");
+      expect(tags).toContain("orange");
+      expect(tags).toContain("apple");
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(fetchedTags.length).toBe(3);
+      expect(fetchedTags).toContain("banana");
+      expect(fetchedTags).toContain("orange");
+      expect(fetchedTags).toContain("apple");
+    });
+  })
 });
