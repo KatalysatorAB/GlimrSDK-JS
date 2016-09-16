@@ -763,3 +763,7 @@
 
   window.Glimr = new GlimrClass();
 })(window, window.document);
+
+if (typeof module === "object") {
+  module.exports = window.Glimr;
+}
