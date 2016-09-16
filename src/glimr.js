@@ -1,4 +1,18 @@
-(function(window, document) {
+;(function(name, definition) {
+  "use strict";
+
+  var theModule = definition(),
+      hasDefine = typeof define === 'function' && define.amd,
+      hasExports = typeof module !== 'undefined' && module.exports;
+
+  if (hasDefine) {
+    define(theModule);
+  } else if (hasExports) {
+    module.exports = theModule;
+  } else {
+    window.Glimr = theModule;
+  }
+})("glimr-sdk", function () {
   "use strict";
 
   var GLIMR_HOST = "//pixel.glimr.io";
@@ -69,12 +83,10 @@
     },
 
     JSONP: function(url, callback) {
-      window.Glimr.networkRequests += 1;
-
       var timestamp = new Date().getTime();
       var generatedFunction = "glmrjsonp" + Math.round(timestamp + Math.random() * 1000001);
 
-      var jsonpScript = document.createElement("script");
+      var jsonpScript = window.document.createElement("script");
 
       window[generatedFunction] = function(json) {
         callback(json);
@@ -99,11 +111,11 @@
         }, false);
       }
       jsonpScript.setAttribute("src", url);
-      document.getElementsByTagName("head")[0].appendChild(jsonpScript);
+      window.document.getElementsByTagName("head")[0].appendChild(jsonpScript);
     },
 
     createCookie: function(name, value, days) {
-      var domainPieces = document.location.hostname.split(".");
+      var domainPieces = window.document.location.hostname.split(".");
       var domain = domainPieces.slice(domainPieces.length - 2, domainPieces.length).join(".");
 
       var expires = "";
@@ -114,12 +126,12 @@
         expires = "; expires=" + date.toGMTString();
       }
 
-      document.cookie = name + "=" + value + expires + "; path=/; domain=" + domain;
+      window.document.cookie = name + "=" + value + expires + "; path=/; domain=" + domain;
     },
 
     readCookie: function(name) {
       var nameEQ = name + "=";
-      var ca = document.cookie.split(';');
+      var ca = window.document.cookie.split(';');
       for (var i = 0; i < ca.length; i += 1) {
         var c = ca[i];
         while (c.charAt(0) === ' ') {
@@ -201,10 +213,10 @@
   };
 
   Gp.currentURLIdentifier = function() {
-    if (document.location.hash && document.location.hash.indexOf("#!") !== -1) {
-      return document.location.hash.replace("#!", "");
+    if (window.document.location.hash && window.document.location.hash.indexOf("#!") !== -1) {
+      return window.document.location.hash.replace("#!", "");
     } else {
-      return document.location.pathname;
+      return window.document.location.pathname;
     }
   };
 
@@ -341,8 +353,8 @@
       extraParams += "&keywords_last_updated=" + pixelLastUpdated;
     }
 
-    if (document.location.hash) {
-      extraParams += "&fragment=" + encodeURIComponent(document.location.hash);
+    if (window.document.location.hash) {
+      extraParams += "&fragment=" + encodeURIComponent(window.document.location.hash);
     }
 
     var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId + extraParams;
@@ -356,6 +368,7 @@
     this.state.loadingTags[pageCacheId] = [];
     this.state.loadingTags[pageCacheId].push(userCallback);
 
+    this.networkRequests += 1;
     Library.JSONP(requestUrl, parseCallback);
   };
 
@@ -761,9 +774,5 @@
     return temp.toLowerCase();
   };
 
-  window.Glimr = new GlimrClass();
-})(window, window.document);
-
-if (typeof module === "object") {
-  module.exports = window.Glimr;
-}
+  return new GlimrClass();
+});

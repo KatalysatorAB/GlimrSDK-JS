@@ -111,5 +111,9 @@
 
     "maxerr"        : 100,      // Maximum errors before stopping.
     "predef"        : [],
-    "indent"        : 4         // Specify indentation spacing
+    "indent"        : 4,         // Specify indentation spacing,
+    "globals"   : {
+      "define": true,
+      "module": true
+    }
 }
