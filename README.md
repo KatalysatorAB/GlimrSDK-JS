@@ -9,10 +9,18 @@ The current major version can be accessed from here:
 
 We follow semver, so the above URL's are the ones you should use to include in your page. The exact version can be accessed from the full version string:
 
-- https://storage.googleapis.com/glimr-static/glimrsdk-js/3.2.0/glimr.min.js
-- https://storage.googleapis.com/glimr-static/glimrsdk-js/3.2.0/glimr.js
+- https://storage.googleapis.com/glimr-static/glimrsdk-js/3.2.1/glimr.min.js
+- https://storage.googleapis.com/glimr-static/glimrsdk-js/3.2.1/glimr.js
 
 ## Usage
+
+### Including
+
+The SDK exposes a Global instance named `Glimr`. If you are using `browserify` or any similar bundling solutions, what you need to do is simply:
+
+```js
+var Glimr = require("glimr-sdk");
+```
 
 ### .getTags
 
