@@ -347,7 +347,6 @@ describe('tag_cache', function() {
       isDone = false;
       var tags = Glimr.getCachedBehaviorTagsAndUpdateInBackground("with_banana_orange_apple", {
         onUpdate: function(tags) {
-          console.log(tags);
           fetchedTags = tags;
           isDone = true;
         }
