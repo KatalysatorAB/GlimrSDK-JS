@@ -31,39 +31,49 @@ GlimrClass.prototype = {
     this.tags = new GlimrTags(this.storage, this.tagCache, this.glimrId, this.url);
 
     this.useLocalStorage = GlimrStorage.isSupportedByBrowser();
-  },
-
-  // serialize.js
-  objectToQuery: GlimrSerialize.objectToQuery,
-  arrayToQuery: GlimrSerialize.arrayToQuery,
-  queryToObject: GlimrSerialize.queryToObject,
-  escapeStringForQuery: GlimrSerialize.scapeStringForQuery,
-  unescapeStringForQuery: GlimrSerialize.unescapeStringForQuery,
-
-  // tags.js
-  getTags: function() {
-    return this.tags.getTags.apply(this.tags, arguments);
-  },
-
-  getCachedBehaviorTags: function() {
-    return this.tags.getCachedBehaviorTags.apply(this.tags, arguments);
-  },
-
-  getCachedBehaviorTagsAndUpdateInBackground: function() {
-    return this.tags.getCachedBehaviorTagsAndUpdateInBackground.apply(this.tags, arguments);
-  },
-
-  getTagsAndPushToDataLayer: function() {
-    return this.tags.getTagsAndPushToDataLayer.apply(this.tags, arguments);
-  },
-
-  // tag_cache.js
-  getTagCacheTimeInSeconds: function() {
-    return this.tagCache.getTagCacheTimeInSeconds.apply(this.tags, arguments);
-  },
-  setTagCacheTimeInSeconds: function() {
-    return this.tagCache.setTagCacheTimeInSeconds.apply(this.tags, arguments);
   }
 };
+
+var serializePublicMethods = [
+  "objectToQuery",
+  "arrayToQuery",
+  "queryToObject",
+  "escapeStringForQuery",
+  "unescapeStringForQuery"
+];
+
+var i;
+for (i = 0; i < serializePublicMethods.length; i++) (function(method) {
+  GlimrClass.prototype[method] = GlimrSerialize[method];
+})(serializePublicMethods[i]);
+
+var tagPublicMethods = [
+  "getPixelLastUpdated",
+  "getCachedURLTags",
+  "getCachedBehaviorTags",
+  "getCachedBehaviorTagsAndUpdateInBackground",
+  "getTagsAndPushToDataLayer",
+  "getTags"
+];
+
+for (i = 0; i < tagPublicMethods.length; i++) (function(method) {
+  GlimrClass.prototype[method] = function() {
+    return this.tags[method].apply(this.tags, arguments);
+  }
+})(tagPublicMethods[i]);
+
+var tagCachePublicMethods = [
+  "usesTagCache",
+  "isTagCacheValid",
+  "setTagCacheTimeInSeconds",
+  "getTagCacheTimeInSeconds",
+  "currentURLIdentifier"
+];
+
+for (i = 0; i < tagCachePublicMethods.length; i++) (function(method) {
+  GlimrClass.prototype[method] = function() {
+    return this.tagCache[method].apply(this.tagCache, arguments);
+  }
+})(tagCachePublicMethods[i]);
 
 module.exports = new GlimrClass();

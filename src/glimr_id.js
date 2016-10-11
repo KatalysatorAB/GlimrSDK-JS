@@ -11,8 +11,7 @@ GlimrId.prototype = {
   initialize: function() {
     this._id = Cookies.readCookie("__glmrid");
     if (!this._id) {
-      this._id = UUID.generate();
-      this.setGlimrCookie();
+      this.setId(UUID.generate());
     }
   },
 
@@ -22,6 +21,11 @@ GlimrId.prototype = {
 
   getId: function() {
     return this._id;
+  },
+
+  setId: function(id) {
+    this._id = id;
+    this.setGlimrCookie();
   }
 };
 

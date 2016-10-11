@@ -42,7 +42,7 @@ GlimrTags.prototype = {
 
   getCachedBehaviorTags: function(pixelId) {
     if (this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
-      var params = this.getLocalTags(pixelId);
+      var params = this._getLocalTags(pixelId);
       return params[0];
     } else {
       return false;
@@ -60,7 +60,7 @@ GlimrTags.prototype = {
       return [];
     }
 
-    var cachedTags = this.getLocalTags(pixelId);
+    var cachedTags = this._getLocalTags(pixelId);
 
     if (!this.tagCache.isTagCacheValid(pixelId)) {
       this.getTags(pixelId, options.onUpdate);
@@ -97,7 +97,7 @@ GlimrTags.prototype = {
       return;
     }
 
-    this.requestTags(pixelId, pageCacheId, callback, functools.bindFunction(this, function(data) {
+    this._requestTags(pixelId, pageCacheId, callback, functools.bindFunction(this, function(data) {
       var tags = [];
       var tagMappings = {};
       var toCache = tags;
@@ -137,14 +137,13 @@ GlimrTags.prototype = {
         callbacks[j](tags, tagMappings);
       }
 
-      if (typeof data.id === "string" && data.id !== this.glimrId) {
-        this.glimrId = data.id;
-        this.setGlimrCookie();
+      if (typeof data.id === "string" && data.id !== this.glimrId.getId()) {
+        this.glimrId.setId(data.id);
       }
     }));
   },
 
-  getLocalTags: function(pixelId) {
+  _getLocalTags: function(pixelId) {
     var storedTags = this.tagCache._deserializeTags(this.storage.get("glimrTags_" + pixelId));
     var urlTags = this.getCachedURLTags(pixelId);
 
@@ -159,7 +158,7 @@ GlimrTags.prototype = {
     }
   },
 
-  requestTags: function(pixelId, pageCacheId, userCallback, parseCallback) {
+  _requestTags: function(pixelId, pageCacheId, userCallback, parseCallback) {
     var pixelLastUpdated = this.getPixelLastUpdated(pixelId);
 
     var extraParams = "";
@@ -174,7 +173,7 @@ GlimrTags.prototype = {
     var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId + extraParams;
 
     if (this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
-      var params = this.getLocalTags(pixelId);
+      var params = this._getLocalTags(pixelId);
       userCallback(params[0], params[1]);
       return;
     }
