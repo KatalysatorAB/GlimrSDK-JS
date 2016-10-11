@@ -1,12 +1,27 @@
-var JSONP = require("lib/jsonp");
+"use strict";
 
-module.exports = {
-  storeLocation: function(longitude, latitude, callback) {
-    var parameters = "longitude=" + encodeURIComponent(longitude) + "&latitude=" + encodeURIComponent(latitude);
-    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId + "&" + parameters;
+var storage = require("./lib/storage");
 
-    JSONP(requestUrl, function() {
-
-    });
-  };
+function GlimrStorage(isEnabledCallback) {
+	this._isEnabledCallback = isEnabledCallback;
 };
+
+GlimrStorage.prototype = {
+	set: function(key, value) {
+		storage[key] = value;
+	},
+
+	get: function(key) {
+		return storage[key];
+	},
+
+	isEnabled: function() {
+		return this._isEnabledCallback();
+	}
+};
+
+GlimrStorage.isSupportedByBrowser = function() {
+	return !!storage;
+}
+
+module.exports = GlimrStorage;

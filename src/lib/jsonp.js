@@ -1,3 +1,5 @@
+"use strict";
+
 var JSONP = function(url, callback) {
   var timestamp = new Date().getTime();
   var generatedFunction = "glmrjsonp" + Math.round(timestamp + Math.random() * 1000001);

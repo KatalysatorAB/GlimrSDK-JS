@@ -1,3 +1,5 @@
+"use strict";
+
 var objecttools = {
   flattenObjectIntoArray: function(obj) {
     var ret = [];

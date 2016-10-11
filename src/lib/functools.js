@@ -1,3 +1,5 @@
+"use strict";
+
 var functools = {
   // From: https://developer.mozilla.org/en/docs/Web/JavaScript/Reference/Global_objects/Function/bind
   bindFunction: function(oThis, func) {

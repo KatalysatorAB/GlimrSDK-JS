@@ -1,3 +1,5 @@
+"use strict";
+
 module.exports = {
   GLIMR_HOST: "//pixel.glimr.io",
   GLIMR_PATHS: {

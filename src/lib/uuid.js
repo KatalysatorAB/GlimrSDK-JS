@@ -1,3 +1,5 @@
+"use strict";
+
 var UUID = {
   generate: function() {
     var d = new Date().getTime();

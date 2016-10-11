@@ -268,7 +268,7 @@ describe('tags', function(){
         isDone = true;
         fetchedTags1 = fetchedTags;
 
-        networkRequests += Glimr.networkRequests;
+        networkRequests += Glimr.tags.networkRequests;
       });
     });
 
@@ -299,7 +299,7 @@ describe('tags', function(){
         expect(syncTags).toContain("orange");
         expect(syncTags).toContain("banana");
 
-        networkRequests += Glimr.networkRequests;
+        networkRequests += Glimr.tags.networkRequests;
       });
     });
 
@@ -328,7 +328,7 @@ describe('tags', function(){
         isDone = true;
         fetchedTags3 = fetchedTags;
 
-        networkRequests += Glimr.networkRequests;
+        networkRequests += Glimr.tags.networkRequests;
       });
     });
 

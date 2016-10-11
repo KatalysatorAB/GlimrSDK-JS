@@ -1,3 +1,5 @@
+"use strict";
+
 var Cookies = {
   createCookie: function(name, value, days) {
     var domainPieces = window.document.location.hostname.split(".");

@@ -1,7 +1,7 @@
 {
   "framework": "jasmine",
   "src_files": [
-    "src/*.js",
+    "spec/glimr.js",
     "spec/**/*.js"
   ],
   "src_files_ignore": [
@@ -14,5 +14,7 @@
   ],
   "launch_in_dev": [
     "PhantomJS"
-  ]
+  ],
+  "before_tests": "npm run spec-build",
+  "on_exit": "rm spec/glimr.js"
 }

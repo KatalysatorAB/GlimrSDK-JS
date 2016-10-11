@@ -1,9 +1,12 @@
-var Storage = require("lib/storage");
-var Cookies = require("lib/cookies");
-var UUID = require("lib/uuid");
+"use strict";
+
+var functools = require("./lib/functools");
+
+var constants = require("./constants");
 
 var GlimrSerialize = require("./serialize");
 var GlimrTags = require("./tags");
+var GlimrId = require("./glimr_id");
 var GlimrTagCache = require("./tag_cache");
 var GlimrStorage = require("./storage");
 
@@ -12,35 +15,55 @@ var GlimrClass = function() {
   this.initialize();
 };
 
-var Gp = GlimrClass.prototype;
+GlimrClass.prototype = {
+  initialize: function() {
+    this.url = {
+      host: constants.GLIMR_HOST,
+      tags: constants.GLIMR_PATHS.tags,
+      store: constants.GLIMR_PATHS.store
+    };
 
-Gp.initialize = function() {
-  this.networkRequests = 0;
+    this.glimrId = new GlimrId();
+    this.storage = new GlimrStorage(functools.bindFunction(this, function() {
+      return this.useLocalStorage;
+    }));
+    this.tagCache = new GlimrTagCache(this.storage);
+    this.tags = new GlimrTags(this.storage, this.tagCache, this.glimrId, this.url);
 
-  this.url = {
-    host: GLIMR_HOST,
-    tags: GLIMR_PATHS.tags,
-    store: GLIMR_PATHS.store
-  };
+    this.useLocalStorage = GlimrStorage.isSupportedByBrowser();
+  },
 
-  this.useLocalStorage = !!Storage;
-  this.state = {
-    urlCache: {},
-    loadingTags: {},
-    loadedTags: {}
-  };
-};
+  // serialize.js
+  objectToQuery: GlimrSerialize.objectToQuery,
+  arrayToQuery: GlimrSerialize.arrayToQuery,
+  queryToObject: GlimrSerialize.queryToObject,
+  escapeStringForQuery: GlimrSerialize.scapeStringForQuery,
+  unescapeStringForQuery: GlimrSerialize.unescapeStringForQuery,
 
-Gp.initGlimrId = function() {
-  this.glimrId = Cookies.readCookie("__glmrid");
-  if (!this.glimrId) {
-    this.glimrId = UUID.generate();
-    this.setGlimrCookie();
+  // tags.js
+  getTags: function() {
+    return this.tags.getTags.apply(this.tags, arguments);
+  },
+
+  getCachedBehaviorTags: function() {
+    return this.tags.getCachedBehaviorTags.apply(this.tags, arguments);
+  },
+
+  getCachedBehaviorTagsAndUpdateInBackground: function() {
+    return this.tags.getCachedBehaviorTagsAndUpdateInBackground.apply(this.tags, arguments);
+  },
+
+  getTagsAndPushToDataLayer: function() {
+    return this.tags.getTagsAndPushToDataLayer.apply(this.tags, arguments);
+  },
+
+  // tag_cache.js
+  getTagCacheTimeInSeconds: function() {
+    return this.tagCache.getTagCacheTimeInSeconds.apply(this.tags, arguments);
+  },
+  setTagCacheTimeInSeconds: function() {
+    return this.tagCache.setTagCacheTimeInSeconds.apply(this.tags, arguments);
   }
 };
 
-Gp.setGlimrCookie = function() {
-  Cookies.createCookie("__glmrid", this.glimrId);
-};
-
-module.exports = GlimrClass();
+module.exports = new GlimrClass();

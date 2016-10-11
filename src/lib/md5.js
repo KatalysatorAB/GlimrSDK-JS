@@ -1,3 +1,5 @@
+"use strict";
+
 var md5 = function(string) {
   function rotateLeft(lValue, iShiftBits) {
     return (lValue << iShiftBits) | (lValue >>> (32 - iShiftBits));

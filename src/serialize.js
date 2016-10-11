@@ -1,4 +1,6 @@
-module.exports = {
+"use strict";
+
+var GlimrSerialize = {
   objectToQuery: function(dictionary) {
     var ret = [];
     for (var key in dictionary) {
@@ -6,11 +8,11 @@ module.exports = {
         var value = dictionary[key];
 
         if (typeof value === "object" && value.constructor === Array) {
-          ret.push(this.arrayToQuery(value, key));
+          ret.push(GlimrSerialize.arrayToQuery(value, key));
         } else if (typeof key === "object") {
-          ret.push(this.objectToQuery(value));
+          ret.push(GlimrSerialize.objectToQuery(value));
         } else {
-          ret.push(this.escapeStringForQuery(key) + "=" + this.escapeStringForQuery(value));
+          ret.push(GlimrSerialize.escapeStringForQuery(key) + "=" + GlimrSerialize.escapeStringForQuery(value));
         }
 
         ret.push("&");
@@ -21,19 +23,19 @@ module.exports = {
     ret.pop();
 
     return ret.join("");
-  };
+  },
 
   arrayToQuery: function(arr, key) {
     key = key || "";
-    var escapedKey = this.escapeStringForQuery(key);
+    var escapedKey = GlimrSerialize.escapeStringForQuery(key);
 
     var ret = [];
     for (var i = 0, j = arr.length; i < j; i += 1) {
-      var value = this.escapeStringForQuery(arr[i]);
+      var value = GlimrSerialize.escapeStringForQuery(arr[i]);
       ret.push(escapedKey + "=" + value);
     }
     return ret.join("&");
-  };
+  },
 
   queryToObject: function(str) {
     var ret = {};
@@ -42,8 +44,8 @@ module.exports = {
     for (var i = 0, j = arr.length; i < j; i += 1) {
       var pieces = arr[i].split("=");
 
-      var key = this.unescapeStringForQuery(pieces[0] || "");
-      var value = this.unescapeStringForQuery(pieces[1] || "");
+      var key = GlimrSerialize.unescapeStringForQuery(pieces[0] || "");
+      var value = GlimrSerialize.unescapeStringForQuery(pieces[1] || "");
 
       if (typeof ret[key] === "undefined") {
         ret[key] = [];
@@ -55,7 +57,7 @@ module.exports = {
     }
 
     return ret;
-  };
+  },
 
   escapeStringForQuery: function(str) {
     return encodeURIComponent(str);
@@ -65,3 +67,5 @@ module.exports = {
     return decodeURIComponent(str);
   }
 };
+
+module.exports = GlimrSerialize;

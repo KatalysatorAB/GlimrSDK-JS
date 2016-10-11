@@ -1,6 +1,8 @@
+"use strict";
+
 // Feature detect + local reference
 // https://mathiasbynens.be/notes/localstorage-pattern
-var Storage = (function() {
+var storage = (function() {
 	var uid = new Date().getTime().toString();
 	var storage;
 	var result;
@@ -12,4 +14,4 @@ var Storage = (function() {
 	} catch (exception) {}
 }());
 
-module.exports = Storage;
+module.exports = storage;

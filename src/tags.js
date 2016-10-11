@@ -1,48 +1,37 @@
-var functools = require("lib/functools");
-var md5 = require("lib/md5");
+"use strict";
+
+var functools = require("./lib/functools");
+var objecttools = require("./lib/objecttools");
+var md5 = require("./lib/md5");
+var JSONP = require("./lib/jsonp");
 
 var constants = require("./constants");
 
-module.exports = {
-  setTagCacheTimeInSeconds: function(seconds) {
-    if (seconds > constants.MAX_CACHE_TIME) {
-      seconds = constants.MAX_CACHE_TIME;
-    }
+function GlimrTags(storage, tagCache, glimrId, url) {
+  this.storage = storage;
+  this.tagCache = tagCache;
+  this.state = {
+    loadingTags: {},
+    loadedTags: {},
+    currentURLCacheKey: false
+  };
+  this.networkRequests = 0;
+  this.glimrId = glimrId;
+  this.url = url;
+}
 
-    constants.CACHE_TIMINGS.tags = seconds;
-  },
-
-  getTagCacheTimeInSeconds: function() {
-    return constants.CACHE_TIMINGS.tags;
-  },
-
-  currentURLCacheKey: function() {
-    if (this.state.currentURLCacheKey) {
-      return this.state.currentURLCacheKey;
-    } else {
-      return md5(this.currentURLIdentifier()).substr(0, 10);
-    }
-  },
-
-  currentURLIdentifier: function() {
-    if (window.document.location.hash && window.document.location.hash.indexOf("#!") !== -1) {
-      return window.document.location.hash.replace("#!", "");
-    } else {
-      return window.document.location.pathname;
-    }
-  },
-
+GlimrTags.prototype = {
   getPixelLastUpdated: function(pixelId) {
-    if (this.useLocalStorage) {
-      return Storage["glimrArticleTags_" + pixelId + "_lastUpdate"] || false;
+    if (this.storage.isEnabled()) {
+      return this.storage.get("glimrArticleTags_" + pixelId + "_lastUpdate") || false;
     } else {
       return false;
     }
   },
 
   getCachedURLTags: function(pixelId) {
-    var cachedTags = this._getOrUnmarshalCache(pixelId);
-    var cacheKey = this.currentURLCacheKey();
+    var cachedTags = this.tagCache._getOrUnmarshalCache(pixelId);
+    var cacheKey = this.tagCache._currentURLCacheKey();
 
     if (!cachedTags[cacheKey]) {
       cachedTags[cacheKey] = [];
@@ -52,8 +41,8 @@ module.exports = {
   },
 
   getCachedBehaviorTags: function(pixelId) {
-    if (this.usesTagCache() && this.isTagCacheValid(pixelId)) {
-      var params = this._getLocalTags(pixelId);
+    if (this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
+      var params = this.getLocalTags(pixelId);
       return params[0];
     } else {
       return false;
@@ -64,24 +53,39 @@ module.exports = {
     options = options || {};
     options.onUpdate = typeof options.onUpdate === "function" ? options.onUpdate : function() {};
 
-    if (!this.usesTagCache()) {
+    if (!this.tagCache.usesTagCache()) {
       if (window.console) {
         window.console.error("Caching not enabled. Enable with Glimr.setTagCacheTimeInSeconds(number)");
       }
       return [];
     }
 
-    var cachedTags = this._getLocalTags(pixelId);
+    var cachedTags = this.getLocalTags(pixelId);
 
-    if (!this.isTagCacheValid(pixelId)) {
+    if (!this.tagCache.isTagCacheValid(pixelId)) {
       this.getTags(pixelId, options.onUpdate);
     }
 
     return cachedTags[0] || false;
   },
 
+  getTagsAndPushToDataLayer: function(pixelId, callback) {
+    this.getTags(pixelId, function(tags) {
+      if (window.dataLayer && window.dataLayer.push) {
+        window.dataLayer.push({
+          "glimrTags": tags,
+          "event": "glimr.tags"
+        });
+      }
+
+      if (callback && typeof callback === "function") {
+        callback();
+      }
+    });
+  },
+
   getTags: function(pixelId, callback) {
-    var pageCacheId = pixelId + this.currentURLCacheKey();
+    var pageCacheId = pixelId + this.tagCache._currentURLCacheKey();
     if (this.state.loadedTags[pageCacheId]) {
       var response = this.state.loadedTags[pageCacheId];
       callback(response[0], response[1]);
@@ -93,7 +97,7 @@ module.exports = {
       return;
     }
 
-    this._requestTags(pixelId, pageCacheId, callback, functools.bindFunction(this, function(data) {
+    this.requestTags(pixelId, pageCacheId, callback, functools.bindFunction(this, function(data) {
       var tags = [];
       var tagMappings = {};
       var toCache = tags;
@@ -108,11 +112,11 @@ module.exports = {
       }
 
       if (data && data.cache) {
-        this._updateURLCache(pixelId, data.cache);
+        this.tagCache._updateURLCache(pixelId, data.cache);
       }
 
-      if (this.usesTagCache()) {
-        this._updateTagCache(pixelId, toCache);
+      if (this.tagCache.usesTagCache()) {
+        this.tagCache._updateTagCache(pixelId, toCache);
       }
 
       var cachedTags = this.getCachedURLTags(pixelId);
@@ -140,8 +144,8 @@ module.exports = {
     }));
   },
 
-  _getLocalTags: function(pixelId) {
-    var storedTags = this._deserializeTags(Storage["glimrTags_" + pixelId]);
+  getLocalTags: function(pixelId) {
+    var storedTags = this.tagCache._deserializeTags(this.storage.get("glimrTags_" + pixelId));
     var urlTags = this.getCachedURLTags(pixelId);
 
     // v1
@@ -155,9 +159,7 @@ module.exports = {
     }
   },
 
-  _requestTags: function(pixelId, pageCacheId, userCallback, parseCallback) {
-    this.initGlimrId();
-
+  requestTags: function(pixelId, pageCacheId, userCallback, parseCallback) {
     var pixelLastUpdated = this.getPixelLastUpdated(pixelId);
 
     var extraParams = "";
@@ -171,8 +173,8 @@ module.exports = {
 
     var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId + extraParams;
 
-    if (this.usesTagCache() && this.isTagCacheValid(pixelId)) {
-      var params = this._getLocalTags(pixelId);
+    if (this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
+      var params = this.getLocalTags(pixelId);
       userCallback(params[0], params[1]);
       return;
     }
@@ -181,32 +183,9 @@ module.exports = {
     this.state.loadingTags[pageCacheId].push(userCallback);
 
     this.networkRequests += 1;
+
     JSONP(requestUrl, parseCallback);
-  },
-
-  getTagsAndPushToDataLayer: function(pixelId, callback) {
-    this.getTags(pixelId, function(tags) {
-      if (window.dataLayer && window.dataLayer.push) {
-        window.dataLayer.push({
-          "glimrTags": tags,
-          "event": "glimr.tags"
-        });
-      }
-
-      if (callback && typeof callback === "function") {
-        callback();
-      }
-    });
-  },
-
-  usesTagCache: function() {
-    return constants.CACHE_TIMINGS.tags > 0 && this.useLocalStorage;
-  },
-
-  isTagCacheValid: function(pixelId) {
-    var lastUpdated = parseInt(Storage["glimrTags_" + pixelId + "_lastUpdate"], 10);
-    var now = new Date().getTime();
-
-    return !isNaN(lastUpdated) && (now - lastUpdated) / 1000 < constants.CACHE_TIMINGS.tags;
-  };
+  }
 };
+
+module.exports = GlimrTags;
