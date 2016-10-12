@@ -5,9 +5,10 @@ var objecttools = require("./lib/objecttools");
 var md5 = require("./lib/md5");
 var JSONP = require("./lib/jsonp");
 
+var GlimrSerialize = require("./serialize");
 var constants = require("./constants");
 
-function GlimrTags(storage, tagCache, glimrId, url) {
+function GlimrTags(storage, tagCache, glimrId, url, enrichment) {
   this.storage = storage;
   this.tagCache = tagCache;
   this.state = {
@@ -18,6 +19,7 @@ function GlimrTags(storage, tagCache, glimrId, url) {
   this.networkRequests = 0;
   this.glimrId = glimrId;
   this.url = url;
+  this.enrichment = enrichment;
 }
 
 GlimrTags.prototype = {
@@ -169,6 +171,8 @@ GlimrTags.prototype = {
     if (window.document.location.hash) {
       extraParams += "&fragment=" + encodeURIComponent(window.document.location.hash);
     }
+
+    extraParams += "&" + GlimrSerialize.objectToQuery({ e: this.enrichment._flush() });
 
     var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId.getId() + extraParams;
 

@@ -9,6 +9,7 @@ var GlimrTags = require("./tags");
 var GlimrId = require("./glimr_id");
 var GlimrTagCache = require("./tag_cache");
 var GlimrStorage = require("./storage");
+var GlimrEnrichment = require("./enrichment");
 
 var GlimrClass = function() {
   this.constructor = GlimrClass;
@@ -27,8 +28,9 @@ GlimrClass.prototype = {
     this.storage = new GlimrStorage(functools.bindFunction(this, function() {
       return this.useLocalStorage;
     }));
+    this.enrichment = new GlimrEnrichment();
     this.tagCache = new GlimrTagCache(this.storage);
-    this.tags = new GlimrTags(this.storage, this.tagCache, this.glimrId, this.url);
+    this.tags = new GlimrTags(this.storage, this.tagCache, this.glimrId, this.url, this.enrichment);
 
     this.useLocalStorage = GlimrStorage.isSupportedByBrowser();
   }
@@ -75,5 +77,15 @@ for (i = 0; i < tagCachePublicMethods.length; i++) (function(method) {
     return this.tagCache[method].apply(this.tagCache, arguments);
   }
 })(tagCachePublicMethods[i]);
+
+var enrichmentPublicMethods = [
+  "storePosition"
+];
+
+for (i = 0; i < enrichmentPublicMethods.length; i++) (function(method) {
+  GlimrClass.prototype[method] = function() {
+    return this.enrichment[method].apply(this.enrichment, arguments);
+  }
+})(enrichmentPublicMethods[i]);
 
 module.exports = new GlimrClass();

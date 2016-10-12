@@ -3,6 +3,15 @@ var app = express();
 
 var fs = require("fs");
 
+app.get('/v:version/iptags/echo_enrichment/', function (req, res) {
+  var callback = req.query.callback;
+  var responseTags = {
+    tags: req.query.e
+  };
+
+  res.send(callback + "(" + JSON.stringify(responseTags) + ")");
+});
+
 app.get('/v:version/iptags/:id/', function (req, res) {
   var file = req.params.id;
 
