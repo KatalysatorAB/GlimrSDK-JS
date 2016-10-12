@@ -3,7 +3,7 @@
   "version": "3.2.1",
   "description": "JavaScript SDK for glimr.io",
   "homepage": "https://glimr.io",
-  "main": "src/glimr.js",
+  "main": "dist/glimr.js",
   "keywords": [
     "glimr",
     "location",
@@ -11,6 +11,7 @@
     "tags"
   ],
   "devDependencies": {
+    "browserify": "^13.1.0",
     "express": "^4.13.4",
     "jshint": "latest",
     "testem": "^1.3.0",
@@ -18,10 +19,14 @@
   },
   "scripts": {
     "lint": "$(npm bin)/jshint --config .jshintrc src/**",
-    "prebuild:js": "npm run lint",
-    "build:js": "$(npm bin)/uglifyjs --compress --mangle --reserved=Glimr src/glimr.js > dist/glimr.min.js",
-    "build": "npm run build:js",
+    "build:minify": "$(npm bin)/uglifyjs --compress --mangle --reserved=Glimr dist/glimr.js > dist/glimr.min.js",
+    "prebuild:browserify": "npm run lint",
+    "build:browserify": "$(npm bin)/browserify --standalone Glimr src/glimr.js > dist/glimr.js",
+    "spec-build": "$(npm bin)/browserify --standalone Glimr src/glimr.js > spec/glimr.js",
+    "build": "npm run build:browserify",
+    "dist": "npm run build:browserify && npm run build:minify",
     "test": "node spec/cli.js",
     "testrunner": "node spec/cli.js runner"
-  }
+  },
+  "dependencies": {}
 }
