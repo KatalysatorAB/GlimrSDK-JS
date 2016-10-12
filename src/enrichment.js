@@ -17,7 +17,7 @@ GlimrEnrichment.prototype = {
     this.data[key] = value;
   },
 
-  _flush() {
+  _flush: function() {
     var oldData = this.data;
     this.data = {};
     return oldData;
