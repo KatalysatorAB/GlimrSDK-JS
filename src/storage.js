@@ -3,25 +3,25 @@
 var storage = require("./lib/storage");
 
 function GlimrStorage(isEnabledCallback) {
-	this._isEnabledCallback = isEnabledCallback;
+  this._isEnabledCallback = isEnabledCallback;
 };
 
 GlimrStorage.prototype = {
-	set: function(key, value) {
-		storage[key] = value;
-	},
+  set: function(key, value) {
+    storage[key] = value;
+  },
 
-	get: function(key) {
-		return storage[key];
-	},
+  get: function(key) {
+    return storage[key];
+  },
 
-	isEnabled: function() {
-		return this._isEnabledCallback();
-	}
+  isEnabled: function() {
+    return this._isEnabledCallback();
+  }
 };
 
 GlimrStorage.isSupportedByBrowser = function() {
-	return !!storage;
+  return !!storage;
 }
 
 module.exports = GlimrStorage;
