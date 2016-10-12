@@ -27,5 +27,6 @@
     "dist": "npm run build:browserify && npm run build:minify",
     "test": "node spec/cli.js",
     "testrunner": "node spec/cli.js runner"
-  }
+  },
+  "dependencies": {}
 }

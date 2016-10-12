@@ -170,7 +170,7 @@ GlimrTags.prototype = {
       extraParams += "&fragment=" + encodeURIComponent(window.document.location.hash);
     }
 
-    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId + extraParams;
+    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId.getId() + extraParams;
 
     if (this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
       var params = this._getLocalTags(pixelId);
