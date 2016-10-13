@@ -6,7 +6,7 @@ var fs = require("fs");
 app.get('/v:version/iptags/echo_enrichment/', function (req, res) {
   var callback = req.query.callback;
   var responseTags = {
-    tags: req.query.e
+    tags: req.query
   };
 
   res.send(callback + "(" + JSON.stringify(responseTags) + ")");

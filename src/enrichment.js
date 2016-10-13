@@ -10,7 +10,7 @@ GlimrEnrichment.prototype = {
       throw new Error("Glimr.storePosition requires one argument, an object with a numeric .latitude and .longitude");
     }
 
-    this._store("position", positionObject);
+    this._store("u_pos", [positionObject.latitude, positionObject.longitude].join(","));
   },
 
   _store: function(key, value) {

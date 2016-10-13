@@ -172,7 +172,7 @@ GlimrTags.prototype = {
       extraParams += "&fragment=" + encodeURIComponent(window.document.location.hash);
     }
 
-    extraParams += "&" + GlimrSerialize.objectToQuery({ e: this.enrichment._flush() });
+    extraParams += "&" + GlimrSerialize.objectToQuery(this.enrichment._flush());
 
     var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId.getId() + extraParams;
 

@@ -23,8 +23,8 @@ describe("glimr_id", function() {
     });
 
     runs(function() {
-      expect(tags.position.longitude).toEqual("51.22");
-      expect(tags.position.latitude).toEqual("23");
+      debugger
+      expect(tags.u_pos).toEqual("23,51.22");
     });
   });
 
