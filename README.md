@@ -239,6 +239,42 @@ alert("Glimr tags: " + glimrTags.join(", "));
 
 **Note**: Pre-requisite for this is that a custom variable has been added as per the aforementioned screenshot.
 
+## Enrichment
+
+You can enrich your own data in Glimr by passing in values for aggregation by the Glimr cloud. Currently only user position is supported. All values defined need to be flushed back to our servers. This is done with a call to `Glimr.getTags`.
+
+### .storePosition
+
+`Glimr.storePosition( position: { longitude: number, latitude: number } ): void`
+
+This signals the position of the user.
+
+**Note:** Stored values are not stored until flushed by a call to `Glimr.getTags`. See the example below to learn how to use it.
+
+### Example
+
+Here is an example using `navigator.geolocation` to ask for local news.
+
+```javascript
+// <a onclick="getPosition()" href="javascript:void(0)">Do you want local news and weather?</a>
+
+function getPosition() {
+  navigator.geolocation.getCurrentPosition(function(position) {
+    // Store position
+    Glimr.storePosition({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude
+    });
+
+    // Flush position with request to server
+    Glimr.getTags("YOURID", function(tags) {
+      // use new possibly more accurate tags
+      conole.log("Tags are now", tags);
+    });
+  });
+}
+```
+
 ## Development
 
 ### Installation
@@ -252,14 +288,12 @@ npm install
 ### Testing
 
 ```bash
-npm install -g testem
-npm install -g phantomjs-prebuilt
-node spec/server.js # keep alive in separate tab
-testem
+npm install -g testem phantomjs-prebuilt
+npm run testrunner
 ```
 
 ### Building for production
 
 ```bash
-npm run build # will output to dist/glimr.min.js
+npm run dist # will output to dist/glimr.min.js
 ```
