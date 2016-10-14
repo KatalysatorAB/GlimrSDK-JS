@@ -29,7 +29,7 @@ describe("glimr_id", function() {
   });
 
   it("throw error on invalid data", function() {
-    var invalidError = new Error("Glimr.storePosition requires one argument, an object with a numeric .latitude and .longitude");
+    var invalidError = new Error("Glimr.storePosition requires one argument, an object with a numeric .longitude and .latitude");
 
     expect(function() {
       Glimr.storePosition(51, 23);
@@ -49,6 +49,6 @@ describe("glimr_id", function() {
 
     expect(function() {
       Glimr.storePosition({ longitude: "23", latitude: "51" });
-    }).toThrow(invalidError);
+    }).not.toThrow(invalidError);
   });
 });

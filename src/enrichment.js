@@ -6,11 +6,14 @@ function GlimrEnrichment() {
 
 GlimrEnrichment.prototype = {
   storePosition: function(positionObject) {
-    if (typeof positionObject.latitude !== "number" || typeof positionObject.longitude !== "number") {
-      throw new Error("Glimr.storePosition requires one argument, an object with a numeric .latitude and .longitude");
+    if (
+      (typeof positionObject.longitude === "number" || !isNaN(parseFloat(positionObject.longitude))) &&
+      (typeof positionObject.latitude === "number" || !isNaN(parseFloat(positionObject.latitude)))
+    ) {
+      this._store("u_pos", [positionObject.latitude, positionObject.longitude].join(","));
+    } else {
+      throw new Error("Glimr.storePosition requires one argument, an object with a numeric .longitude and .latitude");
     }
-
-    this._store("u_pos", [positionObject.latitude, positionObject.longitude].join(","));
   },
 
   _store: function(key, value) {

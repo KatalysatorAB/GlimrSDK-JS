@@ -245,9 +245,9 @@ You can enrich your own data in Glimr by passing in values for aggregation by th
 
 ### .storePosition
 
-`Glimr.storePosition( position: { longitude: number, latitude: number } ): void`
+`Glimr.storePosition( position: { longitude: number | string, latitude: number | string } ): void`
 
-This signals the position of the user.
+This signals the position of the user. The passed in object must have numeric `longitude` and `latitude` members. They can either be numbers or strings that can be parsed with `parseFloat`.
 
 **Note:** Stored values are not stored until flushed by a call to `Glimr.getTags`. See the example below to learn how to use it.
 
