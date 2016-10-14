@@ -22,6 +22,7 @@ module.exports = {
 
 function GlimrEnrichment() {
   this.data = {};
+  this.hasData = false;
 }
 
 GlimrEnrichment.prototype = {
@@ -37,13 +38,19 @@ GlimrEnrichment.prototype = {
   },
 
   _store: function(key, value) {
+    this.hasData = true;
     this.data[key] = value;
   },
 
   _flush: function() {
     var oldData = this.data;
     this.data = {};
+    this.hasData = false;
     return oldData;
+  },
+
+  _needsToFlush: function() {
+    return this.hasData;
   }
 };
 
@@ -947,7 +954,7 @@ GlimrTags.prototype = {
     }
 
     var pageCacheId = pixelId + this.tagCache._currentURLCacheKey();
-    if (this.state.loadedTags[pageCacheId]) {
+    if (!this._needsToMakeRequest() && this.state.loadedTags[pageCacheId]) {
       var response = this.state.loadedTags[pageCacheId];
       callback(response[0], response[1]);
       return;
@@ -1022,6 +1029,12 @@ GlimrTags.prototype = {
   _requestTags: function(pixelId, pageCacheId, userCallback, parseCallback) {
     var pixelLastUpdated = this.getPixelLastUpdated(pixelId);
 
+    if (!this._needsToMakeRequest() && this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
+      var params = this._getLocalTags(pixelId);
+      userCallback(params[0], params[1]);
+      return;
+    }
+
     var extraParams = "";
     if (pixelLastUpdated) {
       extraParams += "&keywords_last_updated=" + pixelLastUpdated;
@@ -1035,18 +1048,16 @@ GlimrTags.prototype = {
 
     var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId.getId() + extraParams;
 
-    if (this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
-      var params = this._getLocalTags(pixelId);
-      userCallback(params[0], params[1]);
-      return;
-    }
-
     this.state.loadingTags[pageCacheId] = [];
     this.state.loadingTags[pageCacheId].push(userCallback);
 
     this.networkRequests += 1;
 
     JSONP(requestUrl, parseCallback);
+  },
+
+  _needsToMakeRequest: function() {
+    return this.enrichment._needsToFlush();
   }
 };
 
