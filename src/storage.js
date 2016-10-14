@@ -4,7 +4,7 @@ var storage = require("./lib/storage");
 
 function GlimrStorage(isEnabledCallback) {
   this._isEnabledCallback = isEnabledCallback;
-};
+}
 
 GlimrStorage.prototype = {
   set: function(key, value) {
@@ -22,6 +22,6 @@ GlimrStorage.prototype = {
 
 GlimrStorage.isSupportedByBrowser = function() {
   return !!storage;
-}
+};
 
 module.exports = GlimrStorage;

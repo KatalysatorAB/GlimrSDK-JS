@@ -24,7 +24,7 @@ var Glimr = require("glimr-sdk");
 
 ### .getTags
 
-`void Glimr.getTags( string clientId, function(array, object) callback )`
+`Glimr.getTags( clientId: string, callback: (Array<string>, Object) => void ): void`
 
 Fetch all tags associated with the current browser client. The callback should accept 1 array and 1 object parameter. Depending on the version of the Glimr API used, the object parameter might be empty.
 
@@ -49,8 +49,8 @@ _Note:_ The `getTags`-call is cached for the duration of the page load. So calli
 
 ### .setTagCacheTimeInSeconds
 
-`number Glimr.setTagCacheTimeInSeconds( number desiredSecondsToCache )`
-`number Glimr.getTagCacheTimeInSeconds( )`
+`Glimr.setTagCacheTimeInSeconds( desiredSecondsToCache: number ): number`
+`Glimr.getTagCacheTimeInSeconds( ): number`
 
 The tags from `Glimr.getTags` can be cached for a duration of up to 5 minutes. The tags don't change too often so it's a good idea to limit network traffic on the client.
 
@@ -68,7 +68,7 @@ The tags are currently only stored in `localStorage`. If `localStorage` is not a
 
 ### .getCachedURLTags
 
-`array Glimr.getCachedURLTags( string clientId )`
+`Glimr.getCachedURLTags( clientId: string ): Array<string>`
 
 Glimr crawls your web property and knows which URL indicates a set of tags, based on filters you setup in the dashboard. The Glimr SDK can download and cache this database in an efficiant manner, and you can use it to get tags without having to make a network request. To fetch the tags associated with the current browser URL you call `Glimr.getCachedURLTags` which does a fast synchronous lookup.
 
@@ -81,7 +81,7 @@ console.log("Cached tags", tags);
 
 ### .getCachedBehaviorTags
 
-`array Glimr.getCachedBehaviorTags( string clientId ): Array | boolean`
+`Glimr.getCachedBehaviorTags( clientId: string ): Array<string> | boolean`
 
 If `Glimr.setTagCacheTimeInSeconds` has been called this method can be used to peek into the cache without calling `Glimr.getTags`. If the cache is still valid, an array will be returned, otherwise `false`.
 
@@ -94,7 +94,7 @@ console.log("Cached tags", tags);
 
 ### .getCachedBehaviorTagsAndUpdateInBackground
 
-`array Glimr.getCachedBehaviorTagsAndUpdateInBackground( string clientId, options: { onUpdate: (tags: Array) => void}): Array<string>`
+`Glimr.getCachedBehaviorTagsAndUpdateInBackground( clientId: string, options: { onUpdate: (tags: Array) => void}): Array<string>`
 
 For some implementors tags need to be used in a synchronous manner, but still need to be updated when possible. Also invalidated tags should still be used. This method works for that use case.
 
@@ -114,7 +114,7 @@ var tags = Glimr.getCachedBehaviorTagsAndUpdateInBackground("PIXEL_ID", {
 
 ### .getTagsAndPushToDataLayer
 
-`void Glimr.getTagsAndPushToDataLayer( string clientId )`
+`Glimr.getTagsAndPushToDataLayer( clientId: string ): void`
 
 Does the same calls as `Glimr.getTags`, but instead of a callback it simply pushes the tags to the global variable named `dataLayer`, which Google Tag Manager uses.
 
@@ -130,7 +130,7 @@ The biggest hurdle is how to encode your tags. Since they might come back as an 
 
 ### .objectToQuery
 
-`string Glimr.objectToQuery( object value )`
+`Glimr.objectToQuery( value: any ): string`
 
 Take an object/dictionary and convert to a query string. It will not modify array keys (postfix them with `[]`), that is up to the implementer to make sure the keys are postfix'd.
 
@@ -148,7 +148,7 @@ var queryString = Glimr.objectToQuery(tags);
 
 ### .arrayToQuery
 
-`string Glimr.arrayToQuery( array value, string key )`
+`Glimr.arrayToQuery( value: Array, key: string ): string`
 
 Take an array and convert to a query string. The second argument is a string of which will become key for the values.
 
@@ -164,7 +164,7 @@ var queryString = Glimr.arrayToQuery(tags, "my_key");
 
 ### .queryToObject
 
-`object Glimr.queryToObject( string )`
+`Glimr.queryToObject( queryString: string ): Object`
 
 Parse a query string into an object. Since multiple entries are supported per key, it always creates an array key. For example:
 
@@ -183,7 +183,7 @@ var object = Glimr.queryToObject("foo=bar&foo=baz&hello=world");
 
 ### .escapeStringForQuery
 
-`string Glimr.escapeStringForQuery( string value )`
+`Glimr.escapeStringForQuery( value: string ): string`
 
 This is more of a helper that might be useful for very custom stuff. It's what `Glimr.objectToQuery` and `Glimr.arrayToQuery` use to encode the values.
 
@@ -197,7 +197,7 @@ var escapedString = Glimr.escapeStringForQuery("hello world");
 
 ### .unescapeStringForQuery
 
-`string Glimr.unescapeStringForQuery( string value )`
+`Glimr.unescapeStringForQuery( value: string ): string`
 
 Does the opposite of `Glimr.escapeStringForQuery`:
 
@@ -239,6 +239,42 @@ alert("Glimr tags: " + glimrTags.join(", "));
 
 **Note**: Pre-requisite for this is that a custom variable has been added as per the aforementioned screenshot.
 
+## Enrichment
+
+You can enrich your own data in Glimr by passing in values for aggregation by the Glimr cloud. Currently only user position is supported. All values defined need to be flushed back to our servers. This is done with a call to `Glimr.getTags`.
+
+### .storePosition
+
+`Glimr.storePosition( position: { longitude: number, latitude: number } ): void`
+
+This signals the position of the user.
+
+**Note:** Stored values are not stored until flushed by a call to `Glimr.getTags`. See the example below to learn how to use it.
+
+### Example
+
+Here is an example using `navigator.geolocation` to ask for local news.
+
+```javascript
+// <a onclick="getPosition()" href="javascript:void(0)">Do you want local news and weather?</a>
+
+function getPosition() {
+  navigator.geolocation.getCurrentPosition(function(position) {
+    // Store position
+    Glimr.storePosition({
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude
+    });
+
+    // Flush position with request to server
+    Glimr.getTags("YOURID", function(tags) {
+      // use new possibly more accurate tags
+      console.log("Tags are now", tags);
+    });
+  });
+}
+```
+
 ## Development
 
 ### Installation
@@ -252,14 +288,12 @@ npm install
 ### Testing
 
 ```bash
-npm install -g testem
-npm install -g phantomjs-prebuilt
-node spec/server.js # keep alive in separate tab
-testem
+npm install -g testem phantomjs-prebuilt
+npm run testrunner
 ```
 
 ### Building for production
 
 ```bash
-npm run build # will output to dist/glimr.min.js
+npm run dist # will output to dist/glimr.min.js
 ```

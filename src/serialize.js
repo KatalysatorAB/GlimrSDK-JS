@@ -1,18 +1,33 @@
 "use strict";
 
 var GlimrSerialize = {
-  objectToQuery: function(dictionary) {
+  objectToQuery: function(dictionary, prefix) {
+    prefix = prefix || "";
+
     var ret = [];
     for (var key in dictionary) {
       if (Object.prototype.hasOwnProperty.call(dictionary, key)) {
         var value = dictionary[key];
 
-        if (typeof value === "object" && value.constructor === Array) {
-          ret.push(GlimrSerialize.arrayToQuery(value, key));
-        } else if (typeof key === "object") {
-          ret.push(GlimrSerialize.objectToQuery(value));
+        var keyPrefix;
+        if (prefix.length) {
+          keyPrefix = prefix + "[" + GlimrSerialize.escapeStringForQuery(key) + "]";
         } else {
-          ret.push(GlimrSerialize.escapeStringForQuery(key) + "=" + GlimrSerialize.escapeStringForQuery(value));
+          keyPrefix = GlimrSerialize.escapeStringForQuery(key);
+        }
+
+        if (typeof value === "object" && value.constructor === Array) {
+          for (var i = 0, j = value.length; i < j; i += 1) {
+            ret.push(keyPrefix + "=" + GlimrSerialize.escapeStringForQuery(value[i]));
+            ret.push("&");
+          }
+
+          // Remove last &
+          ret.pop();
+        } else if (typeof value === "object") {
+          ret.push(GlimrSerialize.objectToQuery(value, keyPrefix));
+        } else {
+          ret.push(keyPrefix + "=" + GlimrSerialize.escapeStringForQuery(value));
         }
 
         ret.push("&");

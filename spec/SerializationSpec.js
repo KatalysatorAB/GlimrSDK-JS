@@ -79,4 +79,27 @@ describe('serialization', function(){
     expect(data["key2[]"]).toEqual(["123"]);
     expect(data[" ö %&"]).toEqual(["123"]);
   });
+
+  it('should serialize nested objects', function() {
+    // Setup
+    var objectToSerialize = {
+      l1: {
+        l2_1: "foo",
+        l2_2: "bar"
+      },
+      l1_2: {
+        l2: {
+          l3: {
+            bang: "buck"
+          }
+        }
+      }
+    };
+
+    // Act
+    var query = Glimr.objectToQuery(objectToSerialize);
+
+    // Verify
+    expect(query).toEqual("l1[l2_1]=foo&l1[l2_2]=bar&l1_2[l2][l3][bang]=buck");
+  });
 });
