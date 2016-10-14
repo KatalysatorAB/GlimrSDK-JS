@@ -4,6 +4,10 @@ var md5 = require("./lib/md5");
 var constants = require("./constants");
 var GlimrSerialize = require("./serialize");
 
+function missingParam(n, p) {
+  return new TypeError("Parameter #" + n + " is required: " + p);
+}
+
 function TagCache(storage) {
   this.storage = storage;
 
@@ -19,6 +23,10 @@ TagCache.prototype = {
   },
 
   isTagCacheValid: function(pixelId) {
+    if (!pixelId) {
+      throw missingParam(0, "pixelId");
+    }
+
     var lastUpdated = parseInt(this.storage.get("glimrTags_" + pixelId + "_lastUpdate"), 10);
     var now = new Date().getTime();
 

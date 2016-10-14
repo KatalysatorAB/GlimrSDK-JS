@@ -8,6 +8,10 @@ var JSONP = require("./lib/jsonp");
 var GlimrSerialize = require("./serialize");
 var constants = require("./constants");
 
+function missingParam(n, p) {
+  return new TypeError("Parameter #" + n + " is required: " + p);
+}
+
 function GlimrTags(storage, tagCache, glimrId, url, enrichment) {
   this.storage = storage;
   this.tagCache = tagCache;
@@ -32,6 +36,9 @@ GlimrTags.prototype = {
   },
 
   getCachedURLTags: function(pixelId) {
+    if (!pixelId) {
+      throw missingParam(0, "pixelId");
+    }
     var cachedTags = this.tagCache._getOrUnmarshalCache(pixelId);
     var cacheKey = this.tagCache._currentURLCacheKey();
 
@@ -43,6 +50,10 @@ GlimrTags.prototype = {
   },
 
   getCachedBehaviorTags: function(pixelId) {
+    if (!pixelId) {
+      throw missingParam(0, "pixelId");
+    }
+
     if (this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
       var params = this._getLocalTags(pixelId);
       return params[0];
@@ -52,6 +63,10 @@ GlimrTags.prototype = {
   },
 
   getCachedBehaviorTagsAndUpdateInBackground: function(pixelId, options) {
+    if (!pixelId) {
+      throw missingParam(0, "pixelId");
+    }
+
     options = options || {};
     options.onUpdate = typeof options.onUpdate === "function" ? options.onUpdate : function() {};
 
@@ -72,6 +87,10 @@ GlimrTags.prototype = {
   },
 
   getTagsAndPushToDataLayer: function(pixelId, callback) {
+    if (!pixelId) {
+      throw missingParam(0, "pixelId");
+    }
+
     this.getTags(pixelId, function(tags) {
       if (window.dataLayer && window.dataLayer.push) {
         window.dataLayer.push({
@@ -87,6 +106,10 @@ GlimrTags.prototype = {
   },
 
   getTags: function(pixelId, callback) {
+    if (!pixelId) {
+      throw missingParam(0, "pixelId");
+    }
+
     var pageCacheId = pixelId + this.tagCache._currentURLCacheKey();
     if (this.state.loadedTags[pageCacheId]) {
       var response = this.state.loadedTags[pageCacheId];
