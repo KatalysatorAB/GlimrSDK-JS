@@ -2,6 +2,7 @@
 
 function GlimrEnrichment() {
   this.data = {};
+  this.hasData = false;
 }
 
 GlimrEnrichment.prototype = {
@@ -17,13 +18,19 @@ GlimrEnrichment.prototype = {
   },
 
   _store: function(key, value) {
+    this.hasData = true;
     this.data[key] = value;
   },
 
   _flush: function() {
     var oldData = this.data;
     this.data = {};
+    this.hasData = false;
     return oldData;
+  },
+
+  _needsToFlush: function() {
+    return this.hasData;
   }
 };
 

@@ -9,6 +9,8 @@ function clearGlimrValues() {
 
 function clearGlimrState() {
   Glimr = new Glimr.constructor;
+
+  Glimr.setTagCacheTimeInSeconds(0);
 }
 
 function unsetAllCookies() {

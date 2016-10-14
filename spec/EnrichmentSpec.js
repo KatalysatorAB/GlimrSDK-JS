@@ -6,7 +6,7 @@ describe("glimr_id", function() {
     setupGlimrMockServer();
   });
 
-  it("it send enrichment data in tags call", function() {
+  it("should send enrichment data in tags call", function() {
     var isDone = false;
     var tags;
 
@@ -23,8 +23,40 @@ describe("glimr_id", function() {
     });
 
     runs(function() {
-      debugger
       expect(tags.u_pos).toEqual("23,51.22");
+    });
+  });
+
+  it("should make tag call even if tags are cached", function() {
+    var isDone = false;
+    var tags;
+
+    runs(function() {
+      Glimr.setTagCacheTimeInSeconds(300);
+      isDone = false;
+      Glimr.getTags("echo_enrichment", function() {
+        isDone = true;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      Glimr.storePosition({ longitude: 51.22, latitude: 23.00 });
+      isDone = false;
+      Glimr.getTags("echo_enrichment", function() {
+        isDone = true;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(Glimr.tags.networkRequests).toEqual(2);
     });
   });
 
