@@ -36,7 +36,7 @@ GlimrTags.prototype = {
   },
 
   getCachedURLTags: function(pixelId) {
-    if (!pixelId) {
+    if (typeof pixelId === "undefined") {
       throw missingParam(0, "pixelId");
     }
     var cachedTags = this.tagCache._getOrUnmarshalCache(pixelId);
@@ -50,7 +50,7 @@ GlimrTags.prototype = {
   },
 
   getCachedBehaviorTags: function(pixelId) {
-    if (!pixelId) {
+    if (typeof pixelId === "undefined") {
       throw missingParam(0, "pixelId");
     }
 
@@ -63,7 +63,7 @@ GlimrTags.prototype = {
   },
 
   getCachedBehaviorTagsAndUpdateInBackground: function(pixelId, options) {
-    if (!pixelId) {
+    if (typeof pixelId === "undefined") {
       throw missingParam(0, "pixelId");
     }
 
@@ -87,7 +87,7 @@ GlimrTags.prototype = {
   },
 
   getTagsAndPushToDataLayer: function(pixelId, callback) {
-    if (!pixelId) {
+    if (typeof pixelId === "undefined") {
       throw missingParam(0, "pixelId");
     }
 
@@ -106,7 +106,7 @@ GlimrTags.prototype = {
   },
 
   getTags: function(pixelId, callback) {
-    if (!pixelId) {
+    if (typeof pixelId === "undefined") {
       throw missingParam(0, "pixelId");
     }
 

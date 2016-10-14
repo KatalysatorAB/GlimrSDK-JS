@@ -23,7 +23,7 @@ TagCache.prototype = {
   },
 
   isTagCacheValid: function(pixelId) {
-    if (!pixelId) {
+    if (typeof pixelId === "undefined") {
       throw missingParam(0, "pixelId");
     }
 
