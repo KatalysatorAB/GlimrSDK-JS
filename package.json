@@ -1,9 +1,9 @@
 {
   "name": "glimr-sdk",
-  "version": "3.2.1",
+  "version": "3.3.0",
   "description": "JavaScript SDK for glimr.io",
   "homepage": "https://glimr.io",
-  "main": "dist/glimr.js",
+  "main": "src/glimr.js",
   "keywords": [
     "glimr",
     "location",
