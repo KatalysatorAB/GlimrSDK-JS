@@ -17,6 +17,14 @@ GlimrEnrichment.prototype = {
     }
   },
 
+  storeUid: function(uid) {
+    if (uid && typeof uid === 'string') {
+      this._store("uid", uid);
+    } else {
+      throw new Error("Glimr.storeUid requires one string argument");
+    }
+  },
+
   _store: function(key, value) {
     this.hasData = true;
     this.data[key] = value;

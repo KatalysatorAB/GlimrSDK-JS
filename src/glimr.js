@@ -82,7 +82,8 @@ for (i = 0; i < tagCachePublicMethods.length; i += 1) {
 }
 
 var enrichmentPublicMethods = [
-  "storePosition"
+  "storePosition",
+  "storeUid"
 ];
 
 for (i = 0; i < enrichmentPublicMethods.length; i += 1) {
