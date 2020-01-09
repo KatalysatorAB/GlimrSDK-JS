@@ -100,7 +100,17 @@ GlimrClass.prototype = {
     this.tags = new GlimrTags(this.storage, this.tagCache, this.glimrId, this.url, this.enrichment);
 
     this.useLocalStorage = GlimrStorage.isSupportedByBrowser();
+
+
+    if (window.Glimr.cmd) {
+      var commands = window.Glimr.cmd;
+      window.Glimr = this;
+      commands.forEach(function(command) {
+        command();
+      });
+    }
   }
+
 };
 
 function aliasMethod(method, on) {
