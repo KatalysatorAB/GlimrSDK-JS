@@ -91,6 +91,13 @@ GlimrClass.prototype = {
       store: constants.GLIMR_PATHS.store
     };
 
+    function push(fn) {
+      fn();
+    }
+    
+    this.cmd = {};
+    this.cmd.push = push;
+    
     this.glimrId = new GlimrId();
     this.storage = new GlimrStorage(functools.bindFunction(this, function() {
       return this.useLocalStorage;
@@ -102,7 +109,7 @@ GlimrClass.prototype = {
     this.useLocalStorage = GlimrStorage.isSupportedByBrowser();
 
 
-    if (window.Glimr.cmd) {
+    if (window.Glimr && window.Glimr.cmd) {
       var commands = window.Glimr.cmd;
       window.Glimr = this;
       commands.forEach(function(command) {
