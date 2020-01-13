@@ -42,7 +42,7 @@ GlimrClass.prototype = {
     this.useLocalStorage = GlimrStorage.isSupportedByBrowser();
 
 
-    if (window.Glimr && window.Glimr.cmd) {
+    if (window.Glimr && window.Glimr.cmd && Array.isArray(window.Glimr.cmd)) {
       var commands = window.Glimr.cmd;
       window.Glimr = this;
       commands.forEach(function(command) {
