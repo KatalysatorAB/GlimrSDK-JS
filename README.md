@@ -19,7 +19,7 @@ We follow semver, so the above URL's are the ones you should use to include in y
 The SDK exposes a Global instance named `Glimr`. If you are using `browserify` or any similar bundling solutions, what you need to do is simply:
 
 ```js
-var Glimr = require("glimr-sdk");
+var Glimr = require("glimrio-sdk");
 ```
 
 ### .getTags
