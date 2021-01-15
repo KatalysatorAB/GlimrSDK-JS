@@ -1,6 +1,6 @@
 {
   "name": "glimr-sdk",
-  "version": "3.3.2",
+  "version": "3.3.3",
   "description": "JavaScript SDK for glimr.io",
   "homepage": "https://glimr.io",
   "main": "src/glimr.js",
@@ -19,7 +19,7 @@
   },
   "scripts": {
     "lint": "$(npm bin)/jshint --config .jshintrc src/**",
-    "build:minify": "$(npm bin)/uglifyjs --compress --mangle --reserved=Glimr dist/glimr.js > dist/glimr.min.js",
+    "build:minify": "uglifyjs --compress --mangle -- dist/glimr.js > dist/glimr.min.js",
     "prebuild:browserify": "npm run lint",
     "build:browserify": "$(npm bin)/browserify --standalone Glimr src/glimr.js > dist/glimr.js",
     "spec-build": "$(npm bin)/browserify --standalone Glimr src/glimr.js > spec/glimr.js",

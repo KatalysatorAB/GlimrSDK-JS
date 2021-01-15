@@ -6,7 +6,6 @@ var constants = require("./constants");
 
 var GlimrSerialize = require("./serialize");
 var GlimrTags = require("./tags");
-var GlimrId = require("./glimr_id");
 var GlimrTagCache = require("./tag_cache");
 var GlimrStorage = require("./storage");
 var GlimrEnrichment = require("./enrichment");
@@ -24,13 +23,12 @@ GlimrClass.prototype = {
       store: constants.GLIMR_PATHS.store
     };
 
-    this.glimrId = new GlimrId();
     this.storage = new GlimrStorage(functools.bindFunction(this, function() {
       return this.useLocalStorage;
     }));
     this.enrichment = new GlimrEnrichment();
     this.tagCache = new GlimrTagCache(this.storage);
-    this.tags = new GlimrTags(this.storage, this.tagCache, this.glimrId, this.url, this.enrichment);
+    this.tags = new GlimrTags(this.storage, this.tagCache, this.url, this.enrichment);
 
     this.useLocalStorage = GlimrStorage.isSupportedByBrowser();
   }

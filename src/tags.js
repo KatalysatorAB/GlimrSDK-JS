@@ -12,7 +12,7 @@ function missingParam(n, p) {
   return new TypeError("Parameter #" + n + " is required: " + p);
 }
 
-function GlimrTags(storage, tagCache, glimrId, url, enrichment) {
+function GlimrTags(storage, tagCache, url, enrichment) {
   this.storage = storage;
   this.tagCache = tagCache;
   this.state = {
@@ -21,7 +21,6 @@ function GlimrTags(storage, tagCache, glimrId, url, enrichment) {
     currentURLCacheKey: false
   };
   this.networkRequests = 0;
-  this.glimrId = glimrId;
   this.url = url;
   this.enrichment = enrichment;
 }
@@ -162,9 +161,6 @@ GlimrTags.prototype = {
         callbacks[j](tags, tagMappings);
       }
 
-      if (typeof data.id === "string" && data.id !== this.glimrId.getId()) {
-        this.glimrId.setId(data.id);
-      }
     }));
   },
 
@@ -203,7 +199,7 @@ GlimrTags.prototype = {
 
     extraParams += "&" + GlimrSerialize.objectToQuery(this.enrichment._flush());
 
-    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId.getId() + extraParams;
+    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=0" + extraParams;
 
     this.state.loadingTags[pageCacheId] = [];
     this.state.loadingTags[pageCacheId].push(userCallback);

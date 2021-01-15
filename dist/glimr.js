@@ -73,7 +73,6 @@ var constants = require("./constants");
 
 var GlimrSerialize = require("./serialize");
 var GlimrTags = require("./tags");
-var GlimrId = require("./glimr_id");
 var GlimrTagCache = require("./tag_cache");
 var GlimrStorage = require("./storage");
 var GlimrEnrichment = require("./enrichment");
@@ -91,13 +90,12 @@ GlimrClass.prototype = {
       store: constants.GLIMR_PATHS.store
     };
 
-    this.glimrId = new GlimrId();
     this.storage = new GlimrStorage(functools.bindFunction(this, function() {
       return this.useLocalStorage;
     }));
     this.enrichment = new GlimrEnrichment();
     this.tagCache = new GlimrTagCache(this.storage);
-    this.tags = new GlimrTags(this.storage, this.tagCache, this.glimrId, this.url, this.enrichment);
+    this.tags = new GlimrTags(this.storage, this.tagCache, this.url, this.enrichment);
 
     this.useLocalStorage = GlimrStorage.isSupportedByBrowser();
   }
@@ -159,79 +157,7 @@ for (i = 0; i < enrichmentPublicMethods.length; i += 1) {
 
 module.exports = new GlimrClass();
 
-},{"./constants":1,"./enrichment":2,"./glimr_id":4,"./lib/functools":6,"./serialize":12,"./storage":13,"./tag_cache":14,"./tags":15}],4:[function(require,module,exports){
-"use strict";
-
-var Cookies = require("./lib/cookies");
-var UUID = require("./lib/uuid");
-
-function GlimrId() {
-  this.initialize();
-}
-
-GlimrId.prototype = {
-  initialize: function() {
-    this._id = Cookies.readCookie("__glmrid");
-    if (!this._id) {
-      this.setId(UUID.generate());
-    }
-  },
-
-  setGlimrCookie: function() {
-    Cookies.createCookie("__glmrid", this._id);
-  },
-
-  getId: function() {
-    return this._id;
-  },
-
-  setId: function(id) {
-    this._id = id;
-    this.setGlimrCookie();
-  }
-};
-
-module.exports = GlimrId;
-
-},{"./lib/cookies":5,"./lib/uuid":11}],5:[function(require,module,exports){
-"use strict";
-
-var Cookies = {
-  createCookie: function(name, value, days) {
-    var domainPieces = window.document.location.hostname.split(".");
-    var domain = domainPieces.slice(domainPieces.length - 2, domainPieces.length).join(".");
-
-    var expires = "";
-
-    if (days) {
-      var date = new Date();
-      date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
-      expires = "; expires=" + date.toGMTString();
-    }
-
-    window.document.cookie = name + "=" + value + expires + "; path=/; domain=" + domain;
-  },
-
-  readCookie: function(name) {
-    var nameEQ = name + "=";
-    var ca = window.document.cookie.split(';');
-    for (var i = 0; i < ca.length; i += 1) {
-      var c = ca[i];
-      while (c.charAt(0) === ' ') {
-        c = c.substring(1, c.length);
-      }
-
-      if (c.indexOf(nameEQ) === 0) {
-        return c.substring(nameEQ.length, c.length);
-      }
-    }
-    return null;
-  }
-};
-
-module.exports = Cookies;
-
-},{}],6:[function(require,module,exports){
+},{"./constants":1,"./enrichment":2,"./lib/functools":4,"./serialize":9,"./storage":10,"./tag_cache":11,"./tags":12}],4:[function(require,module,exports){
 "use strict";
 
 var functools = {
@@ -257,7 +183,7 @@ var functools = {
 
 module.exports = functools;
 
-},{}],7:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 "use strict";
 
 var JSONP = function(url, callback) {
@@ -294,7 +220,7 @@ var JSONP = function(url, callback) {
 
 module.exports = JSONP;
 
-},{}],8:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 "use strict";
 
 var md5 = function(string) {
@@ -527,7 +453,7 @@ var md5 = function(string) {
 
 module.exports = md5;
 
-},{}],9:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 
 var objecttools = {
@@ -554,7 +480,7 @@ var objecttools = {
 
 module.exports = objecttools;
 
-},{}],10:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 // Feature detect + local reference
@@ -573,23 +499,7 @@ var storage = (function() {
 
 module.exports = storage;
 
-},{}],11:[function(require,module,exports){
-"use strict";
-
-var UUID = {
-  generate: function() {
-    var d = new Date().getTime();
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      var r = (d + Math.random() * 16) % 16 | 0;
-      d = Math.floor(d / 16);
-      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
-    });
-  }
-};
-
-module.exports = UUID;
-
-},{}],12:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 var GlimrSerialize = {
@@ -677,7 +587,7 @@ var GlimrSerialize = {
 
 module.exports = GlimrSerialize;
 
-},{}],13:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 
 var storage = require("./lib/storage");
@@ -706,7 +616,7 @@ GlimrStorage.isSupportedByBrowser = function() {
 
 module.exports = GlimrStorage;
 
-},{"./lib/storage":10}],14:[function(require,module,exports){
+},{"./lib/storage":8}],11:[function(require,module,exports){
 "use strict";
 
 var md5 = require("./lib/md5");
@@ -849,7 +759,7 @@ TagCache.prototype = {
 
 module.exports = TagCache;
 
-},{"./constants":1,"./lib/md5":8,"./serialize":12}],15:[function(require,module,exports){
+},{"./constants":1,"./lib/md5":6,"./serialize":9}],12:[function(require,module,exports){
 "use strict";
 
 var functools = require("./lib/functools");
@@ -864,7 +774,7 @@ function missingParam(n, p) {
   return new TypeError("Parameter #" + n + " is required: " + p);
 }
 
-function GlimrTags(storage, tagCache, glimrId, url, enrichment) {
+function GlimrTags(storage, tagCache, url, enrichment) {
   this.storage = storage;
   this.tagCache = tagCache;
   this.state = {
@@ -873,7 +783,6 @@ function GlimrTags(storage, tagCache, glimrId, url, enrichment) {
     currentURLCacheKey: false
   };
   this.networkRequests = 0;
-  this.glimrId = glimrId;
   this.url = url;
   this.enrichment = enrichment;
 }
@@ -1014,9 +923,6 @@ GlimrTags.prototype = {
         callbacks[j](tags, tagMappings);
       }
 
-      if (typeof data.id === "string" && data.id !== this.glimrId.getId()) {
-        this.glimrId.setId(data.id);
-      }
     }));
   },
 
@@ -1055,7 +961,7 @@ GlimrTags.prototype = {
 
     extraParams += "&" + GlimrSerialize.objectToQuery(this.enrichment._flush());
 
-    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=" + this.glimrId.getId() + extraParams;
+    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=0" + extraParams;
 
     this.state.loadingTags[pageCacheId] = [];
     this.state.loadingTags[pageCacheId].push(userCallback);
@@ -1072,5 +978,5 @@ GlimrTags.prototype = {
 
 module.exports = GlimrTags;
 
-},{"./constants":1,"./lib/functools":6,"./lib/jsonp":7,"./lib/md5":8,"./lib/objecttools":9,"./serialize":12}]},{},[3])(3)
+},{"./constants":1,"./lib/functools":4,"./lib/jsonp":5,"./lib/md5":6,"./lib/objecttools":7,"./serialize":9}]},{},[3])(3)
 });
