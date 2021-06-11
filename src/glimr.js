@@ -23,6 +23,13 @@ GlimrClass.prototype = {
       store: constants.GLIMR_PATHS.store
     };
 
+    // function push(fn) {
+    //   fn();
+    // }
+    //
+    // this.cmd = {};
+    // this.cmd.push = push;
+
     this.storage = new GlimrStorage(functools.bindFunction(this, function() {
       return this.useLocalStorage;
     }));
@@ -31,6 +38,14 @@ GlimrClass.prototype = {
     this.tags = new GlimrTags(this.storage, this.tagCache, this.url, this.enrichment);
 
     this.useLocalStorage = GlimrStorage.isSupportedByBrowser();
+
+    // if (window.Glimr && window.Glimr.cmd && Array.isArray(window.Glimr.cmd)) {
+    //   var commands = window.Glimr.cmd;
+    //   window.Glimr = this;
+    //   commands.forEach(function(command) {
+    //     command();
+    //   });
+    // }
   }
 };
 

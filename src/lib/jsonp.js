@@ -7,7 +7,9 @@ var JSONP = function(url, callback) {
   var jsonpScript = window.document.createElement("script");
 
   window[generatedFunction] = function(json) {
-    callback(json);
+    if (callback && typeof callback === "function") {
+      callback(json);
+    }
 
     try {
       delete window[generatedFunction];
@@ -25,7 +27,9 @@ var JSONP = function(url, callback) {
 
   if (typeof jsonpScript.addEventListener === "function") {
     jsonpScript.addEventListener("error", function() {
-      callback(false);
+      if (callback && typeof callback === "function") {
+        callback(false);
+      }
     }, false);
   }
   jsonpScript.setAttribute("src", url);

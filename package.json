@@ -1,6 +1,6 @@
 {
   "name": "glimrio-sdk",
-  "version": "3.3.3",
+  "version": "3.3.4",
   "description": "JavaScript SDK for glimr.io",
   "homepage": "https://glimr.io",
   "main": "src/glimr.js",

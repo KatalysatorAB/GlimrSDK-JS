@@ -112,7 +112,9 @@ GlimrTags.prototype = {
     var pageCacheId = pixelId + this.tagCache._currentURLCacheKey();
     if (!this._needsToMakeRequest() && this.state.loadedTags[pageCacheId]) {
       var response = this.state.loadedTags[pageCacheId];
-      callback(response[0], response[1]);
+      if (callback && typeof callback === "function") {
+        callback(response[0], response[1]);
+      }
       return;
     }
 
@@ -158,7 +160,9 @@ GlimrTags.prototype = {
       delete this.state.loadingTags[pageCacheId];
 
       for (var j = 0; j < callbacks.length; j += 1) {
-        callbacks[j](tags, tagMappings);
+        if (callback && typeof callback === "function") {
+          callbacks[j](tags, tagMappings);
+        }
       }
 
     }));
@@ -184,7 +188,9 @@ GlimrTags.prototype = {
 
     if (!this._needsToMakeRequest() && this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
       var params = this._getLocalTags(pixelId);
-      userCallback(params[0], params[1]);
+      if (userCallback && typeof userCallback === "function") {
+        userCallback(params[0], params[1]);
+      }
       return;
     }
 
