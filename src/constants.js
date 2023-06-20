@@ -8,10 +8,14 @@ module.exports = {
   },
 
   MAX_CACHE_TIME: 300,
+  MAC_FALLBACK_TIME: 86400,
 
   CACHE_TIMINGS: {
-    tags: 0
+    tags: 0,
+    fallback: 0,
   },
 
-  V2_PREFIX: "[v2]:"
+  V2_PREFIX: "[v2]:",
+
+  IS_FALLBACK: false
 };

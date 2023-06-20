@@ -188,6 +188,7 @@ GlimrTags.prototype = {
 
     if (!this._needsToMakeRequest() && this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
       var params = this._getLocalTags(pixelId);
+
       if (userCallback && typeof userCallback === "function") {
         userCallback(params[0], params[1]);
       }

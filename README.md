@@ -64,6 +64,23 @@ console.log(Glimr.getTagCacheTimeInSeconds());
 // ... 300
 ```
 
+### .setTagCacheFallback
+
+`Glimr.setTagCacheTimeInSecondsWithFallback( desiredSecondsToCache: number ): number`
+`Glimr.setTagCacheTimeInSecondsWithFallback( ): number`
+
+The tags from `Glimr.getTags` can be cached for a duration of up to 5 minutes. The tags don't change too often so it's a good idea to limit network traffic on the client.
+
+```js
+Glimr.setTagCacheFallback(86400);
+
+// Max fallback time is 24h, after that fallback will be reset
+// Passing anything > 86 400(24h) will become 86 400(24h)
+Glimr.setTagCacheFallback(99999);
+console.log(Glimr.getFallbackTimeInSeconds());
+// ... 86400
+```
+
 The tags are currently only stored in `localStorage`. If `localStorage` is not available on the client no caching will happen.
 
 ### .getCachedURLTags

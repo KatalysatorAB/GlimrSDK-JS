@@ -41,8 +41,21 @@ TagCache.prototype = {
     constants.CACHE_TIMINGS.tags = seconds;
   },
 
+  setTagCacheFallback: function(seconds) {
+    if(seconds > constants.MAC_FALLBACK_TIME) {
+      seconds = constants.MAC_FALLBACK_TIME;
+    }
+
+    constants.CACHE_TIMINGS.fallback = seconds;
+    constants.IS_FALLBACK = true;
+  },
+
   getTagCacheTimeInSeconds: function() {
     return constants.CACHE_TIMINGS.tags;
+  },
+
+  getFallbackTimeInSeconds: function() {
+    return constants.CACHE_TIMINGS.fallback;
   },
 
   currentURLIdentifier: function() {
@@ -115,10 +128,154 @@ TagCache.prototype = {
     }
   },
 
+
+  _isFallbackValid: function (pixelId) {
+    var lastUpdated = parseInt(this.storage.get("glimrTags_" + pixelId + "_fallbackInit"), 10);
+    var now = new Date().getTime();
+
+    return !isNaN(lastUpdated) && (now - lastUpdated) / 1000 < constants.CACHE_TIMINGS.tags;
+  },
+
+  _mapTagArrayToTagsObject: function (tags) {
+    var mapped = {};
+
+    for (var k = 0; k < tags.length; k += 1) {
+      mapped['geo' + k] = [tags[k]];
+    }
+    return mapped;
+  },
+
+  _prepareTagCacheForFallbackTags: function (pixelId, storedTags, incomingTags) {
+    var entries = function (obj) {
+      var ownProps = Object.keys(obj),
+          i = ownProps.length,
+          resArray = new Array(i);
+      while (i - 1) {
+        resArray[i] = [ownProps[i], obj[ownProps[i]]];
+      }
+
+      return resArray;
+    };
+
+    var rawIncomingTags = [];
+    var rawStoredTags = [];
+
+    var incomingTagsEntries = entries(incomingTags);
+    var storedTagsEntries = entries(storedTags);
+
+    for (var j = 0; j < incomingTagsEntries.length; j+=1) {
+      rawIncomingTags.push(incomingTagsEntries[j][1][0]);
+    }
+
+    for (var i = 0; i < storedTagsEntries.length; i+=1) {
+      rawStoredTags.push(storedTagsEntries[j][1][0]);
+    }
+
+    var extractCode = function (tag, prefix) {
+      return tag.substring(prefix.length, tag.length);
+    };
+
+    if (!rawIncomingTags.length || !rawIncomingTags.some(function (t) {
+      return t.includes('glco_');
+    })) {
+      return this._mapTagArrayToTagsObject(rawStoredTags);
+    } else if (rawIncomingTags.some(function (t) {
+      return t.includes('glco_');
+    }) && !rawIncomingTags.some(function (t) {
+      return t.includes('glmu_');
+    })) {
+      var glcoBackend = rawIncomingTags.find(function (t) {
+        return t.includes('glco_');
+      });
+      var glcoStored = rawIncomingTags.find(function (t) {
+        return t.includes('glco_');
+      });
+      var glmuStored = rawIncomingTags.find(function (t) {
+        return t.includes('glmu_');
+      });
+      if (glcoBackend === glcoStored && glmuStored) {
+        return this._mapTagArrayToTagsObject(rawStoredTags);
+      }
+      if (glcoBackend === glcoStored && !glmuStored) {
+        var glcoArray = rawStoredTags;
+        glcoArray.push('glco_' +extractCode(glcoStored, 'glco_') +'_unknown');
+
+        return this._mapTagArrayToTagsObject(glcoArray);
+      }
+      return this._mapTagArrayToTagsObject(rawIncomingTags);
+    } else if (rawIncomingTags.some(function (t) {
+      return t.includes('glmu_');
+    }) && !rawIncomingTags.some(function (t) {
+      return t.includes('glmu_');
+    })) {
+      var glmuBackend = rawIncomingTags.find(function (t) {
+        return t.includes('glmu_');
+      });
+      var _glmuStored = rawIncomingTags.find(function (t) {
+        return t.includes('glmu_');
+      });
+      var glciStored = rawIncomingTags.find(function (t) {
+        return t.includes('glci_');
+      });
+      if (glmuBackend === _glmuStored && glciStored) {
+        return this._mapTagArrayToTagsObject(rawStoredTags);
+      }
+      if (glmuBackend === _glmuStored && !glciStored) {
+        var glmuArray = rawStoredTags;
+        glmuArray.push('glmu_' + extractCode(_glmuStored, 'glmu_') +'_unknown');
+
+        return this._mapTagArrayToTagsObject(glmuArray);
+      }
+      return this._mapTagArrayToTagsObject(rawIncomingTags);
+    } else if (rawIncomingTags.some(function (t) {
+      return t.includes('glci_');
+    }) && !rawIncomingTags.some(function (t) {
+      return t.includes('glci_');
+    })) {
+      var glciBackend = rawIncomingTags.find(function (t) {
+        return t.includes('glci_');
+      });
+      var _glciStored = rawIncomingTags.find(function (t) {
+        return t.includes('glci_');
+      });
+      var gldiStored = rawIncomingTags.find(function (t) {
+        return t.includes('gldi_');
+      });
+      if (glciBackend === _glciStored && gldiStored) {
+        return this._mapTagArrayToTagsObject(rawStoredTags);
+      }
+      if (glciBackend === _glciStored && !gldiStored) {
+        var glciArray = rawStoredTags;
+        glciArray.push('glci_' + extractCode(_glciStored, 'glci_') +'_unknown');
+
+        return this._mapTagArrayToTagsObject(glciArray);
+      }
+      return this._mapTagArrayToTagsObject(rawIncomingTags);
+    } else {
+      return this._mapTagArrayToTagsObject(rawIncomingTags);
+    }
+  },
+
   _updateTagCache: function(pixelId, tags) {
     if (this.storage.isEnabled()) {
-      this.storage.set("glimrTags_" + pixelId + "_lastUpdate", new Date().getTime());
-      this.storage.set("glimrTags_" + pixelId, this._serializeTags(tags));
+      if(constants.IS_FALLBACK) {
+        var rawStoredTags = this.storage.get("glimrTags_" + pixelId);
+
+        if(rawStoredTags && this._isFallbackValid()) {
+          var newTags = this._prepareTagCacheForFallbackTags(pixelId, this._deserializeTags(rawStoredTags), tags);
+
+          this.storage.set("glimrTags_" + pixelId, this._serializeTags(newTags));
+        } else {
+          this.storage.set("glimrTags_" + pixelId + "_fallbackInit", new Date().getTime());
+          this.storage.set("glimrTags_" + pixelId + "_lastUpdate", new Date().getTime());
+          this.storage.set("glimrTags_" + pixelId, this._serializeTags(tags));
+        }
+      }
+
+      if(!constants.IS_FALLBACK) {
+        this.storage.set("glimrTags_" + pixelId + "_lastUpdate", new Date().getTime());
+        this.storage.set("glimrTags_" + pixelId, this._serializeTags(tags));
+      }
     }
   },
 
