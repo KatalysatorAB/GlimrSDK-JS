@@ -312,5 +312,6 @@ npm run testrunner
 ### Building for production
 
 ```bash
-npm run dist # will output to dist/glimr.min.js
+npm run dist # will output to dist/glimr.min.js - works only on Unix based systems
+npm run dist:windows # will output to dist/glimr.min.js - works only on Windows
 ```

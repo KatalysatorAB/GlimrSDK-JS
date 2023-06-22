@@ -175,48 +175,78 @@ TagCache.prototype = {
       return tag.substring(prefix.length, tag.length);
     };
 
-    if (!rawIncomingTags.length || !rawIncomingTags.some(function (t) {
-      return t.includes('glco_');
-    })) {
+    var isGlcoIncoming = false;
+    var isGlmuIncoming = false;
+    var isGlciIncoming = false;
+    var isGldiIncoming = false;
+
+    for (var g = 0; g < rawIncomingTags.length; g += 1) {
+      if(rawIncomingTags[g].indexOf("glco_") >= 0) {
+        isGlcoIncoming = true;
+      }
+      if(rawIncomingTags[g].indexOf("glmu_") >= 0) {
+        isGlcoIncoming = true;
+      }
+      if(rawIncomingTags[g].indexOf("glci_") >= 0) {
+        isGlciIncoming = true;
+      }
+      if(rawIncomingTags[g].indexOf("gldi_") >= 0) {
+        isGldiIncoming = true;
+      }
+    }
+
+    if (!rawIncomingTags.length || !isGlcoIncoming) {
       return this._mapTagArrayToTagsObject(rawStoredTags);
-    } else if (rawIncomingTags.some(function (t) {
-      return t.includes('glco_');
-    }) && !rawIncomingTags.some(function (t) {
-      return t.includes('glmu_');
-    })) {
-      var glcoBackend = rawIncomingTags.find(function (t) {
-        return t.includes('glco_');
-      });
-      var glcoStored = rawIncomingTags.find(function (t) {
-        return t.includes('glco_');
-      });
-      var glmuStored = rawIncomingTags.find(function (t) {
-        return t.includes('glmu_');
-      });
+    } else if (isGlcoIncoming && !isGlmuIncoming) {
+      var glcoBackend;
+      var glcoStored;
+      var glmuStored;
+
+      for (var q = 0; q < rawIncomingTags.length; q += 1) {
+        if(rawIncomingTags[q].indexOf("glco_")) {
+          glcoBackend = rawIncomingTags[q];
+        }
+      }
+
+      for (var w = 0; w < rawStoredTags.length; w += 1) {
+        if(rawStoredTags[w].indexOf("glco_")) {
+          glcoStored = rawStoredTags[q];
+        }
+        if(rawStoredTags[w].indexOf("glmu_")) {
+          glmuStored = rawStoredTags[q];
+        }
+      }
+
       if (glcoBackend === glcoStored && glmuStored) {
         return this._mapTagArrayToTagsObject(rawStoredTags);
       }
       if (glcoBackend === glcoStored && !glmuStored) {
         var glcoArray = rawStoredTags;
-        glcoArray.push('glco_' +extractCode(glcoStored, 'glco_') +'_unknown');
+        glcoArray.push('glco_' + extractCode(glcoStored, 'glco_') +'_unknown');
 
         return this._mapTagArrayToTagsObject(glcoArray);
       }
       return this._mapTagArrayToTagsObject(rawIncomingTags);
-    } else if (rawIncomingTags.some(function (t) {
-      return t.includes('glmu_');
-    }) && !rawIncomingTags.some(function (t) {
-      return t.includes('glmu_');
-    })) {
-      var glmuBackend = rawIncomingTags.find(function (t) {
-        return t.includes('glmu_');
-      });
-      var _glmuStored = rawIncomingTags.find(function (t) {
-        return t.includes('glmu_');
-      });
-      var glciStored = rawIncomingTags.find(function (t) {
-        return t.includes('glci_');
-      });
+    } else if (isGlmuIncoming && isGlciIncoming) {
+      var glmuBackend;
+      var _glmuStored;
+      var glciStored;
+
+      for (var e = 0; e < rawIncomingTags.length; e += 1) {
+        if(rawIncomingTags[e].indexOf("glmu_")) {
+          glmuBackend = rawIncomingTags[e];
+        }
+      }
+
+      for (var r = 0; r < rawStoredTags.length; r += 1) {
+        if(rawStoredTags[r].indexOf("glmu_")) {
+          _glmuStored = rawStoredTags[r];
+        }
+        if(rawStoredTags[r].indexOf("glci_")) {
+          glciStored = rawStoredTags[r];
+        }
+      }
+
       if (glmuBackend === _glmuStored && glciStored) {
         return this._mapTagArrayToTagsObject(rawStoredTags);
       }
@@ -227,20 +257,32 @@ TagCache.prototype = {
         return this._mapTagArrayToTagsObject(glmuArray);
       }
       return this._mapTagArrayToTagsObject(rawIncomingTags);
-    } else if (rawIncomingTags.some(function (t) {
-      return t.includes('glci_');
-    }) && !rawIncomingTags.some(function (t) {
-      return t.includes('glci_');
-    })) {
+    } else if (isGlciIncoming && !isGldiIncoming) {
       var glciBackend = rawIncomingTags.find(function (t) {
-        return t.includes('glci_');
+        return t.indexOf('glci_') >= 0;
       });
-      var _glciStored = rawIncomingTags.find(function (t) {
-        return t.includes('glci_');
+      var _glciStored = rawStoredTags.find(function (t) {
+        return t.indexOf('glci_') >= 0;
       });
-      var gldiStored = rawIncomingTags.find(function (t) {
-        return t.includes('gldi_');
+      var gldiStored = rawStoredTags.find(function (t) {
+        return t.indexOf('gldi_') >= 0;
       });
+
+      for (var t = 0; t < rawIncomingTags.length; t += 1) {
+        if(rawIncomingTags[t].indexOf("glci_")) {
+          glciBackend = rawIncomingTags[t];
+        }
+      }
+
+      for (var y = 0; y < rawStoredTags.length; y += 1) {
+        if(rawStoredTags[y].indexOf("glci_")) {
+          _glciStored = rawStoredTags[y];
+        }
+        if(rawStoredTags[y].indexOf("gldi_")) {
+          gldiStored = rawStoredTags[y];
+        }
+      }
+
       if (glciBackend === _glciStored && gldiStored) {
         return this._mapTagArrayToTagsObject(rawStoredTags);
       }
