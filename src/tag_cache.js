@@ -41,12 +41,13 @@ TagCache.prototype = {
     constants.CACHE_TIMINGS.tags = seconds;
   },
 
-  setTagCacheFallback: function(seconds) {
+  setTagCacheFallback: function(seconds, mapping) {
     if(seconds > constants.MAC_FALLBACK_TIME) {
       seconds = constants.MAC_FALLBACK_TIME;
     }
 
     constants.CACHE_TIMINGS.fallback = seconds;
+    constants.FALLBACK_MAPPING = mapping;
     constants.IS_FALLBACK = true;
   },
 
@@ -144,24 +145,27 @@ TagCache.prototype = {
     }
     return mapped;
   },
+  _entries: function (obj) {
+    var ownProps = Object.keys(obj),
+        i = ownProps.length,
+        resArray = new Array(i);
+    while (i - 1) {
+      resArray[i] = [ownProps[i], obj[ownProps[i]]];
+    }
 
+    return resArray;
+  },
+
+  _extractCode: function (tag, prefix) {
+    return tag.substring(prefix.length, tag.length);
+  },
   _prepareTagCacheForFallbackTags: function (pixelId, storedTags, incomingTags) {
-    var entries = function (obj) {
-      var ownProps = Object.keys(obj),
-          i = ownProps.length,
-          resArray = new Array(i);
-      while (i - 1) {
-        resArray[i] = [ownProps[i], obj[ownProps[i]]];
-      }
-
-      return resArray;
-    };
 
     var rawIncomingTags = [];
     var rawStoredTags = [];
 
-    var incomingTagsEntries = entries(incomingTags);
-    var storedTagsEntries = entries(storedTags);
+    var incomingTagsEntries = this._entries(incomingTags);
+    var storedTagsEntries = this._entries(storedTags);
 
     for (var j = 0; j < incomingTagsEntries.length; j+=1) {
       rawIncomingTags.push(incomingTagsEntries[j][1][0]);
@@ -171,131 +175,52 @@ TagCache.prototype = {
       rawStoredTags.push(storedTagsEntries[j][1][0]);
     }
 
-    var extractCode = function (tag, prefix) {
-      return tag.substring(prefix.length, tag.length);
-    };
 
-    var isGlcoIncoming = false;
-    var isGlmuIncoming = false;
-    var isGlciIncoming = false;
-    var isGldiIncoming = false;
-
-    for (var g = 0; g < rawIncomingTags.length; g += 1) {
-      if(rawIncomingTags[g].indexOf("glco_") >= 0) {
-        isGlcoIncoming = true;
-      }
-      if(rawIncomingTags[g].indexOf("glmu_") >= 0) {
-        isGlcoIncoming = true;
-      }
-      if(rawIncomingTags[g].indexOf("glci_") >= 0) {
-        isGlciIncoming = true;
-      }
-      if(rawIncomingTags[g].indexOf("gldi_") >= 0) {
-        isGldiIncoming = true;
-      }
-    }
-
-    if (!rawIncomingTags.length || !isGlcoIncoming) {
+    if(!rawIncomingTags.length) {
       return this._mapTagArrayToTagsObject(rawStoredTags);
-    } else if (isGlcoIncoming && !isGlmuIncoming) {
-      var glcoBackend;
-      var glcoStored;
-      var glmuStored;
-
-      for (var q = 0; q < rawIncomingTags.length; q += 1) {
-        if(rawIncomingTags[q].indexOf("glco_")) {
-          glcoBackend = rawIncomingTags[q];
-        }
-      }
-
-      for (var w = 0; w < rawStoredTags.length; w += 1) {
-        if(rawStoredTags[w].indexOf("glco_")) {
-          glcoStored = rawStoredTags[q];
-        }
-        if(rawStoredTags[w].indexOf("glmu_")) {
-          glmuStored = rawStoredTags[q];
-        }
-      }
-
-      if (glcoBackend === glcoStored && glmuStored) {
-        return this._mapTagArrayToTagsObject(rawStoredTags);
-      }
-      if (glcoBackend === glcoStored && !glmuStored) {
-        var glcoArray = rawStoredTags;
-        glcoArray.push('glco_' + extractCode(glcoStored, 'glco_') +'_unknown');
-
-        return this._mapTagArrayToTagsObject(glcoArray);
-      }
-      return this._mapTagArrayToTagsObject(rawIncomingTags);
-    } else if (isGlmuIncoming && isGlciIncoming) {
-      var glmuBackend;
-      var _glmuStored;
-      var glciStored;
-
-      for (var e = 0; e < rawIncomingTags.length; e += 1) {
-        if(rawIncomingTags[e].indexOf("glmu_")) {
-          glmuBackend = rawIncomingTags[e];
-        }
-      }
-
-      for (var r = 0; r < rawStoredTags.length; r += 1) {
-        if(rawStoredTags[r].indexOf("glmu_")) {
-          _glmuStored = rawStoredTags[r];
-        }
-        if(rawStoredTags[r].indexOf("glci_")) {
-          glciStored = rawStoredTags[r];
-        }
-      }
-
-      if (glmuBackend === _glmuStored && glciStored) {
-        return this._mapTagArrayToTagsObject(rawStoredTags);
-      }
-      if (glmuBackend === _glmuStored && !glciStored) {
-        var glmuArray = rawStoredTags;
-        glmuArray.push('glmu_' + extractCode(_glmuStored, 'glmu_') +'_unknown');
-
-        return this._mapTagArrayToTagsObject(glmuArray);
-      }
-      return this._mapTagArrayToTagsObject(rawIncomingTags);
-    } else if (isGlciIncoming && !isGldiIncoming) {
-      var glciBackend = rawIncomingTags.find(function (t) {
-        return t.indexOf('glci_') >= 0;
-      });
-      var _glciStored = rawStoredTags.find(function (t) {
-        return t.indexOf('glci_') >= 0;
-      });
-      var gldiStored = rawStoredTags.find(function (t) {
-        return t.indexOf('gldi_') >= 0;
-      });
-
-      for (var t = 0; t < rawIncomingTags.length; t += 1) {
-        if(rawIncomingTags[t].indexOf("glci_")) {
-          glciBackend = rawIncomingTags[t];
-        }
-      }
-
-      for (var y = 0; y < rawStoredTags.length; y += 1) {
-        if(rawStoredTags[y].indexOf("glci_")) {
-          _glciStored = rawStoredTags[y];
-        }
-        if(rawStoredTags[y].indexOf("gldi_")) {
-          gldiStored = rawStoredTags[y];
-        }
-      }
-
-      if (glciBackend === _glciStored && gldiStored) {
-        return this._mapTagArrayToTagsObject(rawStoredTags);
-      }
-      if (glciBackend === _glciStored && !gldiStored) {
-        var glciArray = rawStoredTags;
-        glciArray.push('glci_' + extractCode(_glciStored, 'glci_') +'_unknown');
-
-        return this._mapTagArrayToTagsObject(glciArray);
-      }
-      return this._mapTagArrayToTagsObject(rawIncomingTags);
-    } else {
-      return this._mapTagArrayToTagsObject(rawIncomingTags);
     }
+
+    var mapping = constants.FALLBACK_MAPPING;
+
+    for(var currentMappingIndex = 0; currentMappingIndex < mapping; currentMappingIndex += 1) {
+      var currentMapping = mapping[currentMappingIndex];
+      var firstTag = currentMapping[0];
+      var secondTag = currentMapping[1];
+
+      for (var incomingTagIndex = 0; incomingTagIndex < rawIncomingTags.length; incomingTagIndex += 1) {
+        var firstTagBackend;
+        var firstTagStored;
+        var secondTagStored;
+
+        if(rawIncomingTags[incomingTagIndex].indexOf(firstTag) < 0) {
+          return this._mapTagArrayToTagsObject(rawStoredTags);
+        }
+
+        for (var rawIncomingTagIndex = 0; rawIncomingTagIndex < rawIncomingTags.length; rawIncomingTagIndex += 1) {
+          if(rawIncomingTags[rawIncomingTagIndex].indexOf(firstTag)) {
+            firstTagBackend = rawIncomingTags[rawIncomingTagIndex];
+          }
+        }
+
+        for (var rawStoredTagIndex = 0; rawStoredTagIndex < rawStoredTags.length; rawStoredTagIndex += 1) {
+          if(rawStoredTags[rawStoredTagIndex].indexOf(firstTag)) {
+            firstTagStored = rawStoredTags[rawIncomingTagIndex];
+          }
+          if(rawStoredTags[rawStoredTagIndex].indexOf(secondTag)) {
+            secondTagStored = rawStoredTags[rawIncomingTagIndex];
+          }
+        }
+
+        if (firstTagBackend && firstTagStored && firstTagBackend === firstTagStored && secondTagStored) {
+          return this._mapTagArrayToTagsObject(rawStoredTags);
+        }
+        if (firstTagBackend && firstTagStored && firstTagBackend === firstTagStored && !secondTagStored) {
+          rawStoredTags.push(firstTag + this._extractCode(firstTagStored, firstTag) +'_unknown');
+        }
+      }
+    }
+
+    return this._mapTagArrayToTagsObject(rawStoredTags);
   },
 
   _updateTagCache: function(pixelId, tags) {

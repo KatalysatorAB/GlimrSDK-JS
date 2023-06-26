@@ -17,5 +17,6 @@ module.exports = {
 
   V2_PREFIX: "[v2]:",
 
-  IS_FALLBACK: false
+  IS_FALLBACK: false,
+  FALLBACK_MAPPING: []
 };

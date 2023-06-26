@@ -89,6 +89,7 @@ var tagCachePublicMethods = [
   "setTagCacheFallback",
   "getTagCacheTimeInSeconds",
   "getFallbackTimeInSeconds",
+  "getFallbackMapping",
   "currentURLIdentifier"
 ];
 
