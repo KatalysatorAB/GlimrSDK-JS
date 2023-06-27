@@ -61,6 +61,19 @@ GlimrTags.prototype = {
     }
   },
 
+  getCachedFallbackTags: function(pixelId) {
+    if (typeof pixelId === "undefined") {
+      throw missingParam(0, "pixelId");
+    }
+
+    if (this.tagCache.usesFallbackCache() && this.tagCache.isFallbackTagCacheValid(pixelId)) {
+      var params = this._getLocalTags(pixelId);
+      return params[0];
+    } else {
+      return false;
+    }
+  },
+
   getCachedBehaviorTagsAndUpdateInBackground: function(pixelId, options) {
     if (typeof pixelId === "undefined") {
       throw missingParam(0, "pixelId");

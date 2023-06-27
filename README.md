@@ -66,8 +66,8 @@ console.log(Glimr.getTagCacheTimeInSeconds());
 
 ### .setTagCacheFallback
 
-`Glimr.setTagCacheTimeInSecondsWithFallback( desiredSecondsToCache: number ): number`
-`Glimr.setTagCacheTimeInSecondsWithFallback( ): number`
+`Glimr.setTagCacheFallback( desiredSecondsToCache: number ): number`
+`Glimr.setTagCacheFallback( ): number`
 
 The tags from `Glimr.getTags` can be cached for a duration of up to 5 minutes. The tags don't change too often so it's a good idea to limit network traffic on the client.
 
@@ -115,6 +115,17 @@ console.log("Cached tags", tags);
 If `Glimr.setTagCacheTimeInSeconds` has been called this method can be used to peek into the cache without calling `Glimr.getTags`. If the cache is still valid, an array will be returned, otherwise `false`.
 
 **Note:** This returns a different class of tags than `Glimr.getCachedURLTags`. Behavior tags are based on the user and not the current web URL.
+
+```js
+var tags = Glimr.getCachedBehaviorTags("YOUR_CLIENT_ID");
+console.log("Cached tags", tags);
+```
+
+### .getCachedFallbackTags
+
+`Glimr.getCachedFallbackTags( clientId: string ): Array<string> | boolean`
+
+If `Glimr.setTagCacheFallback` has been called this method can be used to peek into the fallback cache. If the cache is still valid, an array will be returned, otherwise `false`.
 
 ```js
 var tags = Glimr.getCachedBehaviorTags("YOUR_CLIENT_ID");

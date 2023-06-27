@@ -21,6 +21,9 @@ TagCache.prototype = {
   usesTagCache: function() {
     return constants.CACHE_TIMINGS.tags > 0 && this.storage.isEnabled();
   },
+  usesFallbackCache: function() {
+    return constants.CACHE_TIMINGS.fallback > 0 && this.storage.isEnabled();
+  },
 
   isTagCacheValid: function(pixelId) {
     if (typeof pixelId === "undefined") {
@@ -31,6 +34,17 @@ TagCache.prototype = {
     var now = new Date().getTime();
 
     return !isNaN(lastUpdated) && (now - lastUpdated) / 1000 < constants.CACHE_TIMINGS.tags;
+  },
+
+  isFallbackTagCacheValid: function(pixelId) {
+    if (typeof pixelId === "undefined") {
+      throw missingParam(0, "pixelId");
+    }
+
+    var lastUpdated = parseInt(this.storage.get("glimrTags_" + pixelId + "_fallbackInit"), 10);
+    var now = new Date().getTime();
+
+    return !isNaN(lastUpdated) && (now - lastUpdated) / 1000 < constants.CACHE_TIMINGS.fallback;
   },
 
   setTagCacheTimeInSeconds: function(seconds) {
