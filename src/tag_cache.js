@@ -41,6 +41,8 @@ TagCache.prototype = {
       throw missingParam(0, "pixelId");
     }
 
+    console.log(this.storage.get("glimrTags_" + pixelId + "_fallbackInit"));
+
     var lastUpdated = parseInt(this.storage.get("glimrTags_" + pixelId + "_fallbackInit"), 10);
     var now = new Date().getTime();
 
@@ -148,7 +150,7 @@ TagCache.prototype = {
     var lastUpdated = parseInt(this.storage.get("glimrTags_" + pixelId + "_fallbackInit"), 10);
     var now = new Date().getTime();
 
-    return !isNaN(lastUpdated) && (now - lastUpdated) / 1000 < constants.CACHE_TIMINGS.tags;
+    return !isNaN(lastUpdated) && (now - lastUpdated) / 1000 < constants.CACHE_TIMINGS.fallback;
   },
 
   _mapTagArrayToTagsObject: function (tags) {
@@ -162,8 +164,9 @@ TagCache.prototype = {
   _entries: function (obj) {
     var ownProps = Object.keys(obj),
         i = ownProps.length,
-        resArray = new Array(i);
-    while (i - 1) {
+        resArray = new Array(i); // preallocate the Array
+
+    while (i--) {
       resArray[i] = [ownProps[i], obj[ownProps[i]]];
     }
 
@@ -173,22 +176,27 @@ TagCache.prototype = {
   _extractCode: function (tag, prefix) {
     return tag.substring(prefix.length, tag.length);
   },
+  _extractPrefix: function (tag) {
+    var prefixIndex = tag.indexOf('_');
+    return tag.substring(0, prefixIndex + 1);
+  },
   _prepareTagCacheForFallbackTags: function (pixelId, storedTags, incomingTags) {
-
     var rawIncomingTags = [];
+    var rawIncomingTagPrefixes = [];
     var rawStoredTags = [];
-
+    var rawStoredTagPrefixes = [];
     var incomingTagsEntries = this._entries(incomingTags);
     var storedTagsEntries = this._entries(storedTags);
 
     for (var j = 0; j < incomingTagsEntries.length; j+=1) {
       rawIncomingTags.push(incomingTagsEntries[j][1][0]);
+      rawIncomingTagPrefixes.push(this._extractPrefix(incomingTagsEntries[j][1][0]));
     }
 
     for (var i = 0; i < storedTagsEntries.length; i+=1) {
-      rawStoredTags.push(storedTagsEntries[j][1][0]);
+      rawStoredTags.push(storedTagsEntries[i][1][0]);
+      rawStoredTagPrefixes.push(this._extractPrefix(storedTagsEntries[i][1][0]));
     }
-
 
     if(!rawIncomingTags.length) {
       return this._mapTagArrayToTagsObject(rawStoredTags);
@@ -196,40 +204,48 @@ TagCache.prototype = {
 
     var mapping = constants.FALLBACK_MAPPING;
 
-    for(var currentMappingIndex = 0; currentMappingIndex < mapping; currentMappingIndex += 1) {
+    if(!mapping) {
+      throw new Error('Mapping is not provided');
+    }
+
+    for(var currentMappingIndex = 0; currentMappingIndex < mapping.length; currentMappingIndex += 1) {
       var currentMapping = mapping[currentMappingIndex];
-      var firstTag = currentMapping[0];
-      var secondTag = currentMapping[1];
+      var firstMappingTag = currentMapping[0];
+      var secondMappingTag = currentMapping[1];
+      var firstTagBackend = '';
+      var firstTagStored = '';
+      var secondTagStored = '';
+      var secondTagBackend = '';
 
-      for (var incomingTagIndex = 0; incomingTagIndex < rawIncomingTags.length; incomingTagIndex += 1) {
-        var firstTagBackend;
-        var firstTagStored;
-        var secondTagStored;
+      if(rawIncomingTagPrefixes.indexOf(firstMappingTag) < 0) {
+        return this._mapTagArrayToTagsObject(rawStoredTags);
+      }
 
-        if(rawIncomingTags[incomingTagIndex].indexOf(firstTag) < 0) {
-          return this._mapTagArrayToTagsObject(rawStoredTags);
+      for (var rawIncomingTagIndex = 0; rawIncomingTagIndex < rawIncomingTagPrefixes.length; rawIncomingTagIndex += 1) {
+        if(rawIncomingTagPrefixes[rawIncomingTagIndex] === firstMappingTag && !firstTagBackend) {
+          firstTagBackend = rawIncomingTags[rawIncomingTagIndex];
         }
 
-        for (var rawIncomingTagIndex = 0; rawIncomingTagIndex < rawIncomingTags.length; rawIncomingTagIndex += 1) {
-          if(rawIncomingTags[rawIncomingTagIndex].indexOf(firstTag)) {
-            firstTagBackend = rawIncomingTags[rawIncomingTagIndex];
-          }
+        if(rawIncomingTagPrefixes[rawIncomingTagIndex] === secondMappingTag && !secondTagBackend) {
+          secondTagBackend = rawIncomingTags[rawIncomingTagIndex];
         }
+      }
 
-        for (var rawStoredTagIndex = 0; rawStoredTagIndex < rawStoredTags.length; rawStoredTagIndex += 1) {
-          if(rawStoredTags[rawStoredTagIndex].indexOf(firstTag)) {
-            firstTagStored = rawStoredTags[rawIncomingTagIndex];
-          }
-          if(rawStoredTags[rawStoredTagIndex].indexOf(secondTag)) {
-            secondTagStored = rawStoredTags[rawIncomingTagIndex];
-          }
+      for (var rawStoredTagIndex = 0; rawStoredTagIndex < rawStoredTags.length; rawStoredTagIndex += 1) {
+        if(rawStoredTagPrefixes[rawStoredTagIndex] === firstMappingTag && !firstTagStored) {
+          firstTagStored = rawStoredTags[rawStoredTagIndex];
         }
+        if(rawStoredTagPrefixes[rawStoredTagIndex] === secondMappingTag && !secondTagStored) {
+          secondTagStored = rawStoredTags[rawStoredTagIndex];
+        }
+      }
 
-        if (firstTagBackend && firstTagStored && firstTagBackend === firstTagStored && secondTagStored) {
-          return this._mapTagArrayToTagsObject(rawStoredTags);
-        }
-        if (firstTagBackend && firstTagStored && firstTagBackend === firstTagStored && !secondTagStored) {
-          rawStoredTags.push(firstTag + this._extractCode(firstTagStored, firstTag) +'_unknown');
+
+      if (firstTagBackend && firstTagStored && firstTagBackend && !secondTagStored) {
+        var tagToPush = secondMappingTag + this._extractCode(firstTagStored, firstMappingTag) +'_unknown';
+
+        if(rawStoredTags.indexOf(tagToPush) < 0) {
+          rawStoredTags.push(tagToPush);
         }
       }
     }
@@ -242,7 +258,7 @@ TagCache.prototype = {
       if(constants.IS_FALLBACK) {
         var rawStoredTags = this.storage.get("glimrTags_" + pixelId);
 
-        if(rawStoredTags && this._isFallbackValid()) {
+        if(rawStoredTags && this._isFallbackValid(pixelId)) {
           var newTags = this._prepareTagCacheForFallbackTags(pixelId, this._deserializeTags(rawStoredTags), tags);
 
           this.storage.set("glimrTags_" + pixelId, this._serializeTags(newTags));
