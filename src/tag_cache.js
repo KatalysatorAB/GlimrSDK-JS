@@ -41,8 +41,6 @@ TagCache.prototype = {
       throw missingParam(0, "pixelId");
     }
 
-    console.log(this.storage.get("glimrTags_" + pixelId + "_fallbackInit"));
-
     var lastUpdated = parseInt(this.storage.get("glimrTags_" + pixelId + "_fallbackInit"), 10);
     var now = new Date().getTime();
 
