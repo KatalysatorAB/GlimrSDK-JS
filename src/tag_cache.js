@@ -238,8 +238,7 @@ TagCache.prototype = {
         }
       }
 
-
-      if (firstTagBackend && firstTagStored && firstTagBackend && !secondTagStored) {
+      if (firstTagBackend && firstTagStored && !secondTagStored) {
         var tagToPush = secondMappingTag + this._extractCode(firstTagStored, firstMappingTag) +'_unknown';
 
         if(rawStoredTags.indexOf(tagToPush) < 0) {
@@ -260,6 +259,7 @@ TagCache.prototype = {
           var newTags = this._prepareTagCacheForFallbackTags(pixelId, this._deserializeTags(rawStoredTags), tags);
 
           this.storage.set("glimrTags_" + pixelId, this._serializeTags(newTags));
+          this.storage.set("glimrTags_" + pixelId + "_lastUpdate", new Date().getTime());
         } else {
           this.storage.set("glimrTags_" + pixelId + "_fallbackInit", new Date().getTime());
           this.storage.set("glimrTags_" + pixelId + "_lastUpdate", new Date().getTime());
