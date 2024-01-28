@@ -61,6 +61,19 @@ GlimrTags.prototype = {
     }
   },
 
+  getCachedFallbackTags: function(pixelId) {
+    if (typeof pixelId === "undefined") {
+      throw missingParam(0, "pixelId");
+    }
+
+    if (this.tagCache.usesFallbackCache() && this.tagCache.isFallbackTagCacheValid(pixelId)) {
+      var params = this._getLocalTags(pixelId);
+      return params[0];
+    } else {
+      return false;
+    }
+  },
+
   getCachedBehaviorTagsAndUpdateInBackground: function(pixelId, options) {
     if (typeof pixelId === "undefined") {
       throw missingParam(0, "pixelId");
@@ -188,6 +201,7 @@ GlimrTags.prototype = {
 
     if (!this._needsToMakeRequest() && this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
       var params = this._getLocalTags(pixelId);
+
       if (userCallback && typeof userCallback === "function") {
         userCallback(params[0], params[1]);
       }

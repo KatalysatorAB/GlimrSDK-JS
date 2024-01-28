@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Glimr playground</title>
+    <script src="./glimr.js"></script>
+
+  </head>
+  <body>
+  <div id="container"></div>
+  <label for="key">key</label>
+  <input type="text" id="key" name="key" required>
+
+  <br />
+  <br />
+  <label for="TagCacheTimeInSeconds">TagCacheTimeInSeconds</label>
+  <input type="text" id="TagCacheTimeInSeconds" name="TagCacheTimeInSeconds" required>
+  <br />
+  <br />
+
+  <label for="TagCacheFallback">TagCacheFallbackSeconds</label>
+  <input type="text" id="TagCacheFallback" name="TagCacheFallback" required>
+  <br />
+  <br />
+
+  <label for="TagCacheFallbackArray">TagCacheFallbackArray</label>
+  <textarea type="text" id="TagCacheFallbackArray" name="TagCacheFallbackArray" required rows="5" ></textarea>
+  <br />
+  <br />
+
+  <button onclick="startGlimr()">Start</button>
+
+  <br />
+  <br />
+
+  <div>
+    <button onclick="fillOutTags()">Display current tags</button>
+
+    <p>
+      Cached tags: <span id="tag-container"></span>
+    </p>
+
+  </div>
+
+  <div id="root"></div>
+
+  <script>
+
+    const key = localStorage.getItem('key');
+    const TagCacheTimeInSeconds = localStorage.getItem('TagCacheTimeInSeconds');
+    const TagCacheFallback = localStorage.getItem('TagCacheFallback');
+    const TagCacheFallbackArray = localStorage.getItem('TagCacheFallbackArray');
+
+    if(key) {
+      console.log(document.getElementById('key'));
+      try {
+        Glimr.setTagCacheTimeInSeconds(TagCacheTimeInSeconds);
+        Glimr.setTagCacheFallback(TagCacheFallback, JSON.parse(TagCacheFallbackArray));
+        Glimr.getTagsAndPushToDataLayer(key);
+
+      } catch (e) {
+        console.log(e);
+      }
+
+      document.getElementById('key').value = key;
+      document.getElementById('TagCacheTimeInSeconds').value = TagCacheTimeInSeconds;
+      document.getElementById('TagCacheFallback').value = TagCacheFallback;
+      document.getElementById('TagCacheFallbackArray').value = TagCacheFallbackArray;
+    } else {
+      document.getElementById('TagCacheTimeInSeconds').value = 60;
+      document.getElementById('TagCacheFallback').value = 300;
+      const mapping = [
+        ["glco_", "glmu_"],
+        ["glmu_", "glci_"],
+        ["glci_", "gldi_"],
+      ]
+      document.getElementById('TagCacheFallbackArray').value = JSON.stringify(mapping);
+    }
+    const getTokenFrom = (lsKey) => document.getElementById(lsKey)?.value
+    const startGlimr = () => {
+      localStorage.setItem('key', getTokenFrom('key'));
+      localStorage.setItem('TagCacheTimeInSeconds', getTokenFrom('TagCacheTimeInSeconds'));
+      localStorage.setItem('TagCacheFallback', getTokenFrom('TagCacheFallback'));
+      localStorage.setItem('TagCacheFallbackArray', getTokenFrom('TagCacheFallbackArray'));
+      window.location.reload();
+    }
+
+    const fillOutTags = () => {
+      document.getElementById('tag-container').innerHTML = JSON.stringify(Glimr.getCachedFallbackTags(key));
+    }
+  </script>
+  </body>
+</html>

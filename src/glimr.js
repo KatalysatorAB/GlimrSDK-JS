@@ -73,6 +73,7 @@ var tagPublicMethods = [
   "getPixelLastUpdated",
   "getCachedURLTags",
   "getCachedBehaviorTags",
+  "getCachedFallbackTags",
   "getCachedBehaviorTagsAndUpdateInBackground",
   "getTagsAndPushToDataLayer",
   "getTags"
@@ -86,7 +87,10 @@ var tagCachePublicMethods = [
   "usesTagCache",
   "isTagCacheValid",
   "setTagCacheTimeInSeconds",
+  "setTagCacheFallback",
   "getTagCacheTimeInSeconds",
+  "getFallbackTimeInSeconds",
+  "getFallbackMapping",
   "currentURLIdentifier"
 ];
 
