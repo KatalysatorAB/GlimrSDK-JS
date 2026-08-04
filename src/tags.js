@@ -113,7 +113,7 @@ GlimrTags.prototype = {
     if (!this._needsToMakeRequest() && this.state.loadedTags[pageCacheId]) {
       var response = this.state.loadedTags[pageCacheId];
       if (callback && typeof callback === "function") {
-        callback(response[0], response[1]);
+        callback(response[0], response[1], response[2]);
       }
       return;
     }
@@ -126,6 +126,7 @@ GlimrTags.prototype = {
     this._requestTags(pixelId, pageCacheId, callback, functools.bindFunction(this, function(data) {
       var tags = [];
       var tagMappings = {};
+      var coordinate = (data && data.coordinate) ? data.coordinate : null;
       var toCache = tags;
       if (data && data.tags) {
         tags = data.tags;
@@ -154,14 +155,14 @@ GlimrTags.prototype = {
         }
       }
 
-      this.state.loadedTags[pageCacheId] = [tags, tagMappings];
+      this.state.loadedTags[pageCacheId] = [tags, tagMappings, coordinate];
 
       var callbacks = this.state.loadingTags[pageCacheId];
       delete this.state.loadingTags[pageCacheId];
 
       for (var j = 0; j < callbacks.length; j += 1) {
         if (callback && typeof callback === "function") {
-          callbacks[j](tags, tagMappings);
+          callbacks[j](tags, tagMappings, coordinate);
         }
       }
 
@@ -205,7 +206,7 @@ GlimrTags.prototype = {
 
     extraParams += "&" + GlimrSerialize.objectToQuery(this.enrichment._flush());
 
-    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=0" + extraParams;
+    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=0&coords=1" + extraParams;
 
     this.state.loadingTags[pageCacheId] = [];
     this.state.loadingTags[pageCacheId].push(userCallback);

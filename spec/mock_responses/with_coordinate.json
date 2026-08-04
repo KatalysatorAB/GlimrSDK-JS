@@ -1,0 +1,14 @@
+{
+  "tags": ["glco_buskerud", "glmu_drammen", "glci_drammen"],
+  "mapping": {
+    "geo0": ["glco_buskerud"],
+    "geo1": ["glmu_drammen"],
+    "geo2": ["glci_drammen"]
+  },
+  "coordinate": {
+    "latitude": 59.736,
+    "longitude": 10.193,
+    "type": "centroid",
+    "level": "locality"
+  }
+}
