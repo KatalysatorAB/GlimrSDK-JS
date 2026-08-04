@@ -50,6 +50,54 @@ describe('tags', function(){
     });
   });
 
+  it('should expose the centroid coordinate as the third callback argument', function() {
+    var isDone = false;
+    var coordinate;
+    var mappings;
+
+    runs(function() {
+      Glimr.getTags("with_coordinate", function(x, fetchedMappings, fetchedCoordinate) {
+        mappings = fetchedMappings;
+        coordinate = fetchedCoordinate;
+        isDone = true;
+      }, { coordinates: true });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(coordinate).toBeDefined();
+      expect(coordinate.latitude).toBe(59.736);
+      expect(coordinate.longitude).toBe(10.193);
+      expect(coordinate.type).toBe("centroid");
+      expect(coordinate.level).toBe("locality");
+      // tags/mappings still delivered as before
+      expect(mappings.geo2).toContain("glci_drammen");
+    });
+  });
+
+  it('should not define a coordinate when the response has none', function() {
+    var isDone = false;
+    var coordinate = "unset";
+
+    runs(function() {
+      Glimr.getTags("with_banana_orange_apple", function(x, y, fetchedCoordinate) {
+        coordinate = fetchedCoordinate;
+        isDone = true;
+      });
+    });
+
+    waitsFor(function() {
+      return isDone;
+    });
+
+    runs(function() {
+      expect(coordinate).toBe(null);
+    });
+  });
+
   it('should fetch an empty list of tags when no tags are found', function() {
     var isDone = false;
     var tags;

@@ -104,16 +104,20 @@ GlimrTags.prototype = {
     });
   },
 
-  getTags: function(pixelId, callback) {
+  getTags: function(pixelId, callback, options) {
     if (typeof pixelId === "undefined") {
       throw missingParam(0, "pixelId");
     }
 
-    var pageCacheId = pixelId + this.tagCache._currentURLCacheKey();
+    // opt-in: pass { coordinates: true } to also receive the area centroid as
+    // the third callback argument. Off by default, so the request and response
+    // are unchanged for callers that don't ask for it.
+    var wantCoordinates = !!(options && options.coordinates);
+    var pageCacheId = pixelId + this.tagCache._currentURLCacheKey() + (wantCoordinates ? ":coords" : "");
     if (!this._needsToMakeRequest() && this.state.loadedTags[pageCacheId]) {
       var response = this.state.loadedTags[pageCacheId];
       if (callback && typeof callback === "function") {
-        callback(response[0], response[1]);
+        callback(response[0], response[1], response[2]);
       }
       return;
     }
@@ -123,9 +127,10 @@ GlimrTags.prototype = {
       return;
     }
 
-    this._requestTags(pixelId, pageCacheId, callback, functools.bindFunction(this, function(data) {
+    var parseResponse = functools.bindFunction(this, function(data) {
       var tags = [];
       var tagMappings = {};
+      var coordinate = (data && data.coordinate) ? data.coordinate : null;
       var toCache = tags;
       if (data && data.tags) {
         tags = data.tags;
@@ -154,18 +159,19 @@ GlimrTags.prototype = {
         }
       }
 
-      this.state.loadedTags[pageCacheId] = [tags, tagMappings];
+      this.state.loadedTags[pageCacheId] = [tags, tagMappings, coordinate];
 
       var callbacks = this.state.loadingTags[pageCacheId];
       delete this.state.loadingTags[pageCacheId];
 
       for (var j = 0; j < callbacks.length; j += 1) {
         if (callback && typeof callback === "function") {
-          callbacks[j](tags, tagMappings);
+          callbacks[j](tags, tagMappings, coordinate);
         }
       }
 
-    }));
+    });
+    this._requestTags(pixelId, pageCacheId, callback, parseResponse, wantCoordinates);
   },
 
   _getLocalTags: function(pixelId) {
@@ -183,7 +189,7 @@ GlimrTags.prototype = {
     }
   },
 
-  _requestTags: function(pixelId, pageCacheId, userCallback, parseCallback) {
+  _requestTags: function(pixelId, pageCacheId, userCallback, parseCallback, wantCoordinates) {
     var pixelLastUpdated = this.getPixelLastUpdated(pixelId);
 
     if (!this._needsToMakeRequest() && this.tagCache.usesTagCache() && this.tagCache.isTagCacheValid(pixelId)) {
@@ -205,7 +211,7 @@ GlimrTags.prototype = {
 
     extraParams += "&" + GlimrSerialize.objectToQuery(this.enrichment._flush());
 
-    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=0" + extraParams;
+    var requestUrl = (this.url.host + this.url.tags).replace(":id", pixelId) + "?id=0" + (wantCoordinates ? "&coords=1" : "") + extraParams;
 
     this.state.loadingTags[pageCacheId] = [];
     this.state.loadingTags[pageCacheId].push(userCallback);
