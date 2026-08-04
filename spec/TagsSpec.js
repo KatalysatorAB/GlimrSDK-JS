@@ -60,7 +60,7 @@ describe('tags', function(){
         mappings = fetchedMappings;
         coordinate = fetchedCoordinate;
         isDone = true;
-      });
+      }, { coordinates: true });
     });
 
     waitsFor(function() {
