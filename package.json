@@ -14,7 +14,7 @@
     "browserify": "^13.1.0",
     "express": "^4.13.4",
     "jshint": "latest",
-    "testem": "^2.14.0",
+    "testem": "^3.9.0",
     "uglify-js": "latest"
   },
   "scripts": {
