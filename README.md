@@ -9,8 +9,8 @@ The current major version can be accessed from here:
 
 We follow semver, so the above URL's are the ones you should use to include in your page. The exact version can be accessed from the full version string:
 
-- https://storage.googleapis.com/glimr-static/glimrsdk-js/3.3.3/glimr.min.js
-- https://storage.googleapis.com/glimr-static/glimrsdk-js/3.3.3/glimr.js
+- https://storage.googleapis.com/glimr-static/glimrsdk-js/3.4.0/glimr.min.js
+- https://storage.googleapis.com/glimr-static/glimrsdk-js/3.4.0/glimr.js
 
 ## Usage
 
@@ -64,6 +64,35 @@ console.log(Glimr.getTagCacheTimeInSeconds());
 // ... 300
 ```
 
+### .setTagCacheFallback
+
+`Glimr.setTagCacheFallback( desiredSecondsToCache: number ): number`
+`Glimr.setTagCacheFallback( ): number`
+
+The tags from `Glimr.getTags` can be cached for a duration of up to 5 minutes. The tags don't change too often so it's a good idea to limit network traffic on the client.
+
+```js
+var mapping = [
+    ["glco_", "glmu_"],
+    ["glmu_", "glci_"],
+    ["glci_", "gldi_"],
+]
+
+Glimr.setTagCacheFallback(86400, mapping);
+
+// Max fallback time is 24h, after that fallback will be reset
+// Passing anything > 86 400(24h) will become 86 400(24h)
+Glimr.setTagCacheFallback(99999, mapping);
+console.log(Glimr.getFallbackTimeInSeconds());
+// ... 86400
+console.log(Glimr.getFallbackMapping());
+//[
+//  ["glco_", "glmu_"],
+//  ["glmu_", "glci_"],
+//  ["glci_", "gldi_"],
+//]
+```
+
 The tags are currently only stored in `localStorage`. If `localStorage` is not available on the client no caching will happen.
 
 ### .getCachedURLTags
@@ -86,6 +115,17 @@ console.log("Cached tags", tags);
 If `Glimr.setTagCacheTimeInSeconds` has been called this method can be used to peek into the cache without calling `Glimr.getTags`. If the cache is still valid, an array will be returned, otherwise `false`.
 
 **Note:** This returns a different class of tags than `Glimr.getCachedURLTags`. Behavior tags are based on the user and not the current web URL.
+
+```js
+var tags = Glimr.getCachedBehaviorTags("YOUR_CLIENT_ID");
+console.log("Cached tags", tags);
+```
+
+### .getCachedFallbackTags
+
+`Glimr.getCachedFallbackTags( clientId: string ): Array<string> | boolean`
+
+If `Glimr.setTagCacheFallback` has been called this method can be used to peek into the fallback cache. If the cache is still valid, an array will be returned, otherwise `false`.
 
 ```js
 var tags = Glimr.getCachedBehaviorTags("YOUR_CLIENT_ID");
@@ -295,5 +335,6 @@ npm run testrunner
 ### Building for production
 
 ```bash
-npm run dist # will output to dist/glimr.min.js
+npm run dist # will output to dist/glimr.min.js - works only on Unix based systems
+npm run dist:windows # will output to dist/glimr.min.js - works only on Windows
 ```
